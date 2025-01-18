@@ -100,23 +100,6 @@ const UserSchema = new Schema({
       AssignmentLevel: [{ LevelType: String, point: Number }],
     },
   ],
-  Wallet: {
-    TotalWallet: {
-      type: Number,
-      default: 0,
-    },
-    GpayAccount: {
-      GpayAccountName: String,
-      GpayUpiId: String,
-    },
-    WithdrawHistory: [
-      {
-        Time: String,
-        WithdrawAmount: Number,
-        status: String,
-      },
-    ],
-  },
   InterView: [
     {
       companyName: String,
