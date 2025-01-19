@@ -106,8 +106,6 @@ const UserSchema = new Schema({
       currentWeek: { default: 1, type: Number },
     },
   ],
-  DailyCalimStreak: { default: 0, type: Number },
-  TotalStudyTime: { default: 0, type: Number },
   FcmId: String,
   onlineStatus: {
     type: Boolean,

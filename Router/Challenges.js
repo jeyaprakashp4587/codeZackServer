@@ -56,8 +56,8 @@ router.post("/addChallenge", async (req, res) => {
 router.post("/uploadChallenge/:id", async (req, res) => {
   const { GitRepo, LiveLink, SnapImage, ChallengeName } = req.body;
   const { id } = req.params;
-//  console.log(GitRepo, LiveLink, SnapImage, ChallengeName );
- 
+  //  console.log(GitRepo, LiveLink, SnapImage, ChallengeName );
+
   const user = await User.findById(id);
   if (user) {
     const findChallenge = user.Challenges.find(
@@ -80,13 +80,19 @@ router.post("/uploadChallenge/:id", async (req, res) => {
 
 // Get all challenges from the app database
 router.post("/getChallenges", async (req, res) => {
-  const { ChallengeTopic } = req.body;
-  const Collection = DB1.collection("Challenges");
-  const findChallengeTopic = await Collection.findOne({ ChallengeTopic });
-  if (findChallengeTopic) {
-    res.send(findChallengeTopic.Challenges);
-  } else {
-    res.status(404).send("No challenges found for this topic");
+  try {
+    const { ChallengeTopic } = req.body;
+    const Collection = DB1.collection("Challenges");
+    const findChallengeTopic = await Collection.findOne({ ChallengeTopic });
+    if (findChallengeTopic) {
+      // console.log(findChallengeTopic);
+      res.send(findChallengeTopic.Challenges);
+    } else {
+      res.status(404).send("No challenges found for this topic");
+    }
+  } catch (error) {
+    console.error("Error occurred while fetching challenges:", error.message);
+    res.status(500).send("An error occurred while processing your request.");
   }
 });
 
@@ -124,7 +130,7 @@ router.post("/checkChallengeStatus/:id", async (req, res) => {
   // console.log(id, ChallengeName);
   const user = await User.findById(id);
   if (user) {
-    const findChallenge =  user?.Challenges.find(
+    const findChallenge = user?.Challenges.find(
       (ch) => ch.ChallengeName == ChallengeName
     );
     // console.log(findChallenge);
@@ -173,8 +179,8 @@ router.post("/getParticularChallenge/:id", async (req, res) => {
         return res.status(400).send("Invalid challenge level");
     }
     // console.log("cha",findChallenge);
-    
-    res.status(200).json({challenge: findChallenge});
+
+    res.status(200).json({ challenge: findChallenge });
   } else {
     res.status(404).send("Challenge topic not found");
   }
@@ -193,7 +199,7 @@ router.get("/getCompletedChallenge/:id/:challengeName", async (req, res) => {
 });
 
 // this is for get video tutorials
- router.get("/getAllTutorials", async (req, res) => {
+router.get("/getAllTutorials", async (req, res) => {
   const tutorials = DB1.collection("Videos");
   const cursor = await tutorials.find({}).toArray(); // Retrieves all documents in the collection
 
