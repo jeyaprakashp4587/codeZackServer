@@ -9,7 +9,7 @@ router.get("/getCompanyDetails", async (req, res) => {
   if (companies) {
     // Find all companies but only return company name and logo
     const compDetail = await companies
-      .find({}, { projection: { company_name: 1, companyLogo: 1 } })
+      .find({}, { projection: { company_name: 1, companyLogo: 1, colors: 1 } })
       .toArray();
 
     if (compDetail.length > 0) {

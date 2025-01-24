@@ -201,12 +201,25 @@ router.get("/getCompletedChallenge/:id/:challengeName", async (req, res) => {
 // this is for get video tutorials
 router.get("/getAllTutorials", async (req, res) => {
   const tutorials = DB1.collection("Videos");
-  const cursor = await tutorials.find({}).toArray(); // Retrieves all documents in the collection
-
+  const cursor = await tutorials.find({}).toArray();
   if (cursor.length > 0) {
     res.status(200).json({ tutorials: cursor });
   } else {
     res.status(404).json({ message: "No tutorials found." });
+  }
+});
+// get all premium projects
+router.get("/getAllProjects", async (_, res) => {
+  const projectsCollection = DB1.collection("Projects");
+  const cursor = await projectsCollection.find({}).toArray();
+  try {
+    if (cursor.length > 0) {
+      res.status(200).json({ projects: cursor });
+    } else {
+      res.status(404).json({ message: "No Projects found" });
+    }
+  } catch (error) {
+    console.log(err);
   }
 });
 
