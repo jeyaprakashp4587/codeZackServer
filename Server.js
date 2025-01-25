@@ -63,7 +63,7 @@ app.get("/check", (req, res) => {
 });
 console.log("aws");
 // Port listening
-const port = process.env.PORT || 443;
+const port = 80;
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
   // Self-ping every 60 seconds
