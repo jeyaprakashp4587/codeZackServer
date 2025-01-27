@@ -21,8 +21,8 @@ router.get("/users/:id", async (req, res) => {
           LastName: 1,
           InstitudeName: 1,
           "Images.coverImg": 1,
-          "Images.profile": 1
-         
+          "Images.profile": 1,
+          onlineStatus: 1,
         },
       },
     ]);
@@ -51,7 +51,7 @@ router.get("/users/:id", async (req, res) => {
 router.get("/getAllSuggestions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { skip = 0, limit = 6 } = req.query; 
+    const { skip = 0, limit = 6 } = req.query;
     const parsedSkip = parseInt(skip, 10);
     const parsedLimit = parseInt(limit, 10);
     // Find the current user and get their connections
@@ -60,9 +60,9 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
     if (!currentUser) {
       return res.status(404).send("User not found");
     }
-    
+
     const users = await User.aggregate([
-      { $sample: { size: 1000 } }, 
+      { $sample: { size: 1000 } },
       {
         $project: {
           _id: 1, // Include userId
@@ -85,7 +85,10 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
     );
 
     // Apply skip and limit for infinite loading
-    const paginatedUsers = filteredUsers.slice(parsedSkip, parsedSkip + parsedLimit);
+    const paginatedUsers = filteredUsers.slice(
+      parsedSkip,
+      parsedSkip + parsedLimit
+    );
     res.json({
       hasMore: filteredUsers.length > parsedSkip + parsedLimit,
       data: paginatedUsers,

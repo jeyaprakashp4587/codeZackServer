@@ -56,12 +56,15 @@ router.post("/addInterView", async (req, res) => {
     const existingInterview = user.InterView.find(
       (interview) => interview.companyName === companyName
     );
-    console.log(existingInterview);
 
     if (existingInterview) {
       return res.status(400).json({ message: "Exists" });
     }
-    user.InterView.push({ companyName, currentWeek: 1 });
+    user.InterView.push({
+      companyName,
+      currentWeek: 1,
+      currentQuestionLength: 0,
+    });
     await user.save();
     res.status(200).json({
       message: "Interview entry added successfully",
@@ -73,6 +76,26 @@ router.post("/addInterView", async (req, res) => {
       .json({ message: "Internal server error", error: error.message });
   }
 });
+// set the current question to campany
+router.post("/setQuestionLength", async (req, res) => {
+  const { userId, companyName, currentQuestion } = req.body;
+  // console.log(userId, companyName, currentQuestion);
+  try {
+    const user = await User.findById(userId);
+    const findCompany = user.InterView.find(
+      (comp) => comp.companyName === companyName
+    );
+    if (findCompany) {
+      findCompany.currentQuestionLength = currentQuestion;
+      await user.save();
+      res.status(200).json({ InterView: user?.InterView });
+    } else {
+      res.sendStatus(404); // Send 404 if the company is not found
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error updating question count", error });
+  }
+});
 // submit task and add week
 router.post("/submitTask", async (req, res) => {
   const { userId, companyName } = req.body;
@@ -82,10 +105,12 @@ router.post("/submitTask", async (req, res) => {
       (comp) => comp.companyName === companyName
     );
     if (findCompany) {
-      console.log(findCompany);
       findCompany.currentWeek += 1;
       await user.save();
-      res.json({ week: findCompany.currentWeek, user: user }); // Use res.json instead of res.send
+      res.json({
+        week: findCompany.currentWeek,
+        userInterView: user.InterView,
+      }); // Use res.json instead of res.send
     } else {
       res.sendStatus(404); // Send 404 if the company is not found
     }

@@ -92,6 +92,7 @@ const UserSchema = new Schema({
       senderProfileImage: String, // Store the profile image when notification is created
       seen: Boolean,
       postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
+      createdAt: { type: Date, default: Date.now, expires: "2d" },
     },
   ],
   Assignments: [
@@ -104,6 +105,7 @@ const UserSchema = new Schema({
     {
       companyName: String,
       currentWeek: { default: 1, type: Number },
+      currentQuestionLength: { default: 0, type: Number },
     },
   ],
   FcmId: String,

@@ -155,14 +155,14 @@ router.post("/signUp", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "jeyaprakashp431@gmail.com",
-        pass: "qiri pwwh hcyn nrek", // Use App Password here if using Gmail
+        user: "codezacknet@gmail.com",
+        pass: "qkdf cvsn pbei jrkm ", // Use App Password here if using Gmail
       },
     });
 
     // Compose email
     const mailOptions = {
-      from: "jeyaprakashp431@gmail.com",
+      from: "codezacknet@gmail.com",
       to: lowerCaseEmail,
       subject: "Welcome to CodeZack!",
       html: `
@@ -206,9 +206,8 @@ router.post("/signOut/:id", async (req, res) => {
 router.post("/getUser", async (req, res) => {
   const { userId } = req.body;
   const user = await User.findById(userId, {
-    notifications: 0,
+    Notifications: 0,
     Activities: 0,
-    ConnectionsNotes: 0,
   }).populate({
     path: "Posts",
     options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
@@ -246,13 +245,13 @@ router.post("/sendResetPassOtp", async (req, res) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "jeyaprakashp431@gmail.com",
-      pass: "qiri pwwh hcyn nrek", // Use App Password here if using Gmail
+      user: "codezacknet@gmail.com",
+      pass: "qkdf cvsn pbei jrkm ", // Use App Password here if using Gmail
     },
   });
   // Compose email
   const mailOptions = {
-    from: "jeyaprakashp431@gmail.com",
+    from: "codezacknet@gmail.com",
     to: email,
     subject: "Password Reset Request",
     html: `
