@@ -31,11 +31,22 @@ router.get("/getAssignments/:assignmentType", async (req, res) => {
 router.post("/saveAssignment/:id", async (req, res) => {
   const { id } = req.params;
   const { AssignmentType, point, level } = req.body;
+  console.log(AssignmentType, point, level);
 
   try {
-    // Update or add assignment
+    // Step 1: Ensure the Assignments array is initialized
+    const user = await User.findOneAndUpdate(
+      { _id: id },
+      { $setOnInsert: { Assignments: [] } }, // Initialize assignments array if the user doesn't exist
+      { upsert: true, new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Step 2: Update or add the assignment
     const update = {
-      $setOnInsert: { Assignments: [] }, // Initialize assignments array if the user doesn't exist
       $addToSet: {
         "Assignments.$[assignment].AssignmentLevel": {
           LevelType: level,
@@ -46,21 +57,20 @@ router.post("/saveAssignment/:id", async (req, res) => {
 
     const options = {
       arrayFilters: [{ "assignment.AssignmentType": AssignmentType }],
-      upsert: true,
       new: true,
     };
 
-    const user = await User.findOneAndUpdate(
+    const updatedUser = await User.findOneAndUpdate(
       { _id: id },
       update,
       options
     );
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found during update" });
     }
 
-    // Increment course points
+    // Step 3: Increment course points
     const courseUpdate = {
       $inc: {
         "Courses.$[course].Technologies.$[tech].Points":
@@ -76,40 +86,46 @@ router.post("/saveAssignment/:id", async (req, res) => {
 
     const courseOptions = {
       arrayFilters: [
-        { "course.Technologies.TechName": { $regex: AssignmentType, $options: "i" } },
+        {
+          "course.Technologies.TechName": {
+            $regex: AssignmentType,
+            $options: "i",
+          },
+        },
         { "tech.TechName": { $regex: AssignmentType, $options: "i" } },
       ],
     };
 
     await User.updateOne({ _id: id }, courseUpdate, courseOptions);
 
-    // Fetch the updated assignments for the response
-    const updatedUser = await User.findById(id, "Assignments");
-    res.status(200).json({ Assignments: updatedUser.Assignments });
+    // Step 4: Fetch the updated assignments for the response
+    const finalUser = await User.findById(id, "Assignments");
+    res.status(200).json({ Assignments: finalUser.Assignments });
   } catch (error) {
     console.error("Server error while saving assignment:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 // get user assignments
-router.get('/getUserAssignments/:userId', async (req, res) => {
+router.get("/getUserAssignments/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-// console.log(userId);
+    // console.log(userId);
 
     // Fetch the user by ID
-    const user = await User.findById(userId).select('Assignments');
+    const user = await User.findById(userId).select("Assignments");
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     // console.log(user?.Assignments);
-    
+
     // Respond with assignments
-    res.status(200).json({Assignments: user.Assignments});
+    res.status(200).json({ Assignments: user.Assignments });
   } catch (error) {
-    console.error('Error fetching user assignments:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error fetching user assignments:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 // s
