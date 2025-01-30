@@ -43,7 +43,7 @@ router.post("/uploadPost", async (req, res) => {
         if (connectionUser.ConnectionsPost.length >= 15) {
           connectionUser.ConnectionsPost.shift();
         }
-        connectionUser.ConnectionsPost.push({ postId });
+        connectionUser.ConnectionsPost.unshift({ postId });
         await connectionUser.save();
       }
     });
