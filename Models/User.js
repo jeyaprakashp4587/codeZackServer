@@ -92,7 +92,6 @@ const UserSchema = new Schema({
       senderProfileImage: String, // Store the profile image when notification is created
       seen: Boolean,
       postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
-      createdAt: { type: Date, default: Date.now, expires: "2d" },
     },
   ],
   Assignments: [

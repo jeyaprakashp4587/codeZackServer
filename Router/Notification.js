@@ -5,17 +5,26 @@ const User = require("../Models/User");
 // GET request to fetch all notifications for a user
 router.get("/getNotifications/:userId", async (req, res) => {
   const { userId } = req.params;
-  // console.log(userId);
+  let { page = 1, limit = 10 } = req.query;
+
+  page = parseInt(page);
+  limit = parseInt(limit);
 
   try {
     const user = await User.findById(userId);
     if (user) {
       if (user.Notifications && user.Notifications.length > 0) {
-        // Map over notifications and combine the notification text with sender details
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        const notifications = user.Notifications.slice(
+          startIndex,
+          startIndex + limit
+        );
+
+        // Fetch sender details
         const notificationsWithSender = await Promise.all(
-          user.Notifications.map(async (notification) => {
+          notifications.map(async (notification) => {
             try {
-              // Find the user by ID to get the sender's data
               const sender = await User.findById(
                 notification.NotificationSender,
                 "firstName LastName Images.profile"
@@ -28,7 +37,7 @@ router.get("/getNotifications/:userId", async (req, res) => {
                 NotificationSender: notification.NotificationSender,
                 Time: notification.Time,
                 seen: notification.seen,
-                senderFirstName: sender?.firstName || "Unknown", // Default to "Unknown"
+                senderFirstName: sender?.firstName || "Unknown",
                 senderLastName: sender?.LastName || "User",
                 senderProfileImage: sender?.Images?.profile || null,
                 postId: notification.postId || null,
@@ -44,7 +53,7 @@ router.get("/getNotifications/:userId", async (req, res) => {
                 NotificationSender: notification.NotificationSender,
                 Time: notification.Time,
                 seen: notification.seen,
-                senderFirstName: "Unknown", // Default fallback
+                senderFirstName: "Unknown",
                 senderLastName: "User",
                 senderProfileImage: null,
                 postId: notification.postId || null,
@@ -53,9 +62,16 @@ router.get("/getNotifications/:userId", async (req, res) => {
           })
         );
 
-        res.status(200).send(notificationsWithSender);
+        res.status(200).send({
+          notifications: notificationsWithSender,
+          currentPage: page,
+          totalPages: Math.ceil(user.Notifications.length / limit),
+          totalNotifications: user.Notifications.length,
+        });
       } else {
-        res.status(404).send([]); // No notifications found
+        res
+          .status(200)
+          .send({ notifications: [], totalPages: 0, totalNotifications: 0 });
       }
     } else {
       res.status(404).send({ message: "User not found." });
