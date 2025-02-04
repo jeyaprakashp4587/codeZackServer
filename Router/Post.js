@@ -5,17 +5,14 @@ const { mongoose } = require("mongoose");
 
 router.post("/uploadPost", async (req, res) => {
   const { userId, Images, postText, postLink, Time } = req.body;
-
   try {
     // Validate input fields
     if (!postText && !Images?.length && !postLink) {
       return res.status(400).send("Post must contain text, images, or a link");
     }
-
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) return res.status(404).send("User not found");
-
     // Create a new post object with a timestamp
     const newPost = {
       PostText: postText,
@@ -28,32 +25,28 @@ router.post("/uploadPost", async (req, res) => {
       LikedUsers: [],
       CreatedAt: new Date(), // Timestamp for when the post is created
     };
-
     // Push the new post to the user's Posts array
-    user.Posts.push(newPost);
+    user.Posts.unshift(newPost);
     await user.save();
-
     // Get the postId of the newly added post
     const postId = user.Posts[user.Posts.length - 1]._id;
-
     // Share the post with user's connections
-    user.Connections.map(async (connection) => {
+    for (const connection of user.Connections) {
       const connectionUser = await User.findById(connection.ConnectionsdId);
       if (connectionUser) {
+        // If the connection's post list has 15 posts, remove the last one
         if (connectionUser.ConnectionsPost.length >= 15) {
-          connectionUser.ConnectionsPost.shift();
+          connectionUser.ConnectionsPost.pop(); // Removes the last post ID
         }
-        connectionUser.ConnectionsPost.unshift({ postId });
+        connectionUser.ConnectionsPost.unshift({ postId }); // Adds the new post at the beginning
         await connectionUser.save();
       }
-    });
-
+    }
     // Fetch the latest 5 posts of the user
     const updatedUser = await User.findById(userId).populate({
       path: "Posts",
       options: { limit: 5, sort: { Time: -1 } },
     });
-
     // Respond with the post ID and the latest posts
     res.status(200).send({
       text: "Post uploaded successfully",
