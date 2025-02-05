@@ -78,7 +78,6 @@ const UserSchema = new Schema({
   ConnectionsPost: [
     {
       postId: String,
-      createdAt: { type: Date, default: Date.now, expires: 86400 },
     },
   ],
   Notifications: [
