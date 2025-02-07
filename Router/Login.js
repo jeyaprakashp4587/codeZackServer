@@ -18,6 +18,13 @@ router.post("/splash", async (req, res) => {
         ConnectionsPost: 0,
         Assignments: 0,
         Posts: 0,
+        Challenges: {
+          $filter: {
+            input: "$Challenges",
+            as: "challenge",
+            cond: { $eq: ["$$challenge.status", "completed"] },
+          },
+        },
       }
     ).lean();
     if (user) {
@@ -48,11 +55,19 @@ router.post("/signIn", async (req, res) => {
     // Find the user by email
     const findEmailUser = await User.findOne(
       { Email: lowerCaseEmail },
-      { Notifications: 0, Activities: 0, ConnectionsPost: 0 }
-    ).populate({
-      path: "Posts",
-      options: { limit: 5, sort: { Time: -1 } },
-    });
+      {
+        Notifications: 0,
+        Activities: 0,
+        ConnectionsPost: 0,
+        Challenges: {
+          $filter: {
+            input: "$Challenges",
+            as: "challenge",
+            cond: { $eq: ["$$challenge.status", "completed"] },
+          },
+        },
+      }
+    );
     if (!findEmailUser) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
@@ -195,6 +210,13 @@ router.post("/getUser", async (req, res) => {
     Notifications: 0,
     Activities: 0,
     Posts: 0,
+    Challenges: {
+      $filter: {
+        input: "$Challenges",
+        as: "challenge",
+        cond: { $eq: ["$$challenge.status", "completed"] },
+      },
+    },
   });
   if (user) {
     res.status(200).send(user);

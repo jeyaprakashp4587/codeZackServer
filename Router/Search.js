@@ -5,8 +5,6 @@ const User = require("../Models/User");
 // Search all users by name
 router.post("/getUserName/:id", async (req, res) => {
   const { userName } = req.body;
-  console.log(userName);
-
   try {
     if (userName && userName.trim().length > 1) {
       // Only search if userName is provided and is not an empty string
