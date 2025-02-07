@@ -18,18 +18,15 @@ router.post("/splash", async (req, res) => {
         ConnectionsPost: 0,
         Assignments: 0,
         Posts: 0,
-        Challenges: {
-          $filter: {
-            input: "$Challenges",
-            as: "challenge",
-            cond: { $eq: ["$$challenge.status", "completed"] },
-          },
-        },
       }
     ).lean();
     if (user) {
       // Cache the user data in Redis
       // await client?.set(`user:${Email}`, JSON.stringify(user));
+      user.Challenges =
+        user.Challenges?.filter(
+          (challenge) => challenge.status === "completed"
+        ) || [];
       return res.status(200).json({ user });
     } else {
       console.log("User not found");
@@ -59,13 +56,6 @@ router.post("/signIn", async (req, res) => {
         Notifications: 0,
         Activities: 0,
         ConnectionsPost: 0,
-        Challenges: {
-          $filter: {
-            input: "$Challenges",
-            as: "challenge",
-            cond: { $eq: ["$$challenge.status", "completed"] },
-          },
-        },
       }
     );
     if (!findEmailUser) {
@@ -81,6 +71,10 @@ router.post("/signIn", async (req, res) => {
     //   `user:${findEmailUser.Email}`,
     //   JSON.stringify(findEmailUser)
     // );
+    findEmailUser.Challenges =
+      findEmailUser.Challenges?.filter(
+        (challenge) => challenge.status === "completed"
+      ) || [];
     res.json({ message: "SignIn Successful", user: findEmailUser });
   } catch (error) {
     console.error("Server error:", error);
@@ -210,15 +204,12 @@ router.post("/getUser", async (req, res) => {
     Notifications: 0,
     Activities: 0,
     Posts: 0,
-    Challenges: {
-      $filter: {
-        input: "$Challenges",
-        as: "challenge",
-        cond: { $eq: ["$$challenge.status", "completed"] },
-      },
-    },
   });
   if (user) {
+    user.Challenges =
+      user.Challenges?.filter(
+        (challenge) => challenge.status === "completed"
+      ) || [];
     res.status(200).send(user);
   }
   // console.log("userId", userId);

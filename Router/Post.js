@@ -410,7 +410,7 @@ router.post("/commentPost/:postId", async (req, res) => {
 
     // Fetch the commented user's details
     const commentedUser = await User.findById(userId).select(
-      "firstName LastName Images.profile"
+      "firstName LastName Images.profile _id"
     );
 
     res.status(200).json({
@@ -418,11 +418,10 @@ router.post("/commentPost/:postId", async (req, res) => {
       comment: {
         commentText,
         commentedAt: Date.now(),
-        commentedBy: {
-          firstName: commentedUser.firstName,
-          lastName: commentedUser.LastName,
-          profile: commentedUser.Images.profile,
-        },
+        firstName: commentedUser.firstName,
+        LastName: commentedUser.LastName,
+        profile: commentedUser.Images.profile,
+        userId: commentedUser._id,
       },
     });
   } catch (error) {
@@ -473,12 +472,10 @@ router.get("/getComments/:postId", async (req, res) => {
       return {
         commentText: comment.commentText,
         commentedAt: comment.commentedAt,
-        commentedBy: {
-          userId: commentedUser._id,
-          firstName: commentedUser.firstName,
-          LastName: commentedUser.LastName,
-          profile: commentedUser.Images.profile,
-        },
+        userId: commentedUser._id,
+        firstName: commentedUser.firstName,
+        LastName: commentedUser.LastName,
+        profile: commentedUser.Images.profile,
       };
     });
     const hasMore = post.Comments.length > parseInt(skip) + parseInt(limit);

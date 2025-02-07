@@ -5,7 +5,7 @@ const User = require("../Models/User");
 // GET request to fetch all notifications for a user
 router.get("/getNotifications/:userId", async (req, res) => {
   const { userId } = req.params;
-  let { page = 1, limit = 10 } = req.query;
+  let { page, limit } = req.query;
 
   page = parseInt(page);
   limit = parseInt(limit);
