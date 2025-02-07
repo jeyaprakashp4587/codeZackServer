@@ -7,7 +7,7 @@ const getJson = async () => {
     return service;
   }
 };
-// Custom function to initialize Firebase Admin SDK
+// Custom function to initialize Firebase Admin SDK fgr
 const initializeFirebaseAdmin = () => {
   if (!admin.apps.length) {
     admin.initializeApp({
