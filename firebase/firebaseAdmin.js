@@ -24,7 +24,3 @@ const initializeFirebaseAdmin = () => {
 };
 
 module.exports = initializeFirebaseAdmin;
-// git commit -m "first commit"
-// git branch -M main
-// git remote add origin https://github.com/jeyaprakashp4587/czServer.git
-// git push -u origin main
