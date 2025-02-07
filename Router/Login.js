@@ -21,8 +21,6 @@ router.post("/splash", async (req, res) => {
       }
     ).lean();
     if (user) {
-      // Cache the user data in Redis
-      // await client?.set(`user:${Email}`, JSON.stringify(user));
       user.Challenges =
         user.Challenges?.filter(
           (challenge) => challenge.status === "completed"
@@ -49,6 +47,7 @@ router.post("/signIn", async (req, res) => {
     }
     // Convert the email to lowercase
     const lowerCaseEmail = Email.toLowerCase().trim();
+
     // Find the user by email
     const findEmailUser = await User.findOne(
       { Email: lowerCaseEmail },
@@ -56,21 +55,21 @@ router.post("/signIn", async (req, res) => {
         Notifications: 0,
         Activities: 0,
         ConnectionsPost: 0,
+        Posts: 0,
       }
     );
     if (!findEmailUser) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
     // Compare the provided password with the hashed password
-    const isPasswordCorrect = bcrypt.compare(Password, findEmailUser.Password);
+    const isPasswordCorrect = await bcrypt.compare(
+      Password,
+      findEmailUser.Password
+    ); // Added 'await'
     if (!isPasswordCorrect) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
-    // Successful login
-    // await client?.set(
-    //   `user:${findEmailUser.Email}`,
-    //   JSON.stringify(findEmailUser)
-    // );
+    // Filter completed challenges
     findEmailUser.Challenges =
       findEmailUser.Challenges?.filter(
         (challenge) => challenge.status === "completed"
@@ -81,6 +80,7 @@ router.post("/signIn", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 // SignUp route
 router.post("/signUp", async (req, res) => {
   // imges for set profile and cover images

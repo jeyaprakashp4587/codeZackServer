@@ -185,8 +185,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
 });
 // get user posts
 router.post("/getUserPosts", async (req, res) => {
-  const { userId, offsets = 0 } = req.body;
-  console.log(offsets);
+  const { userId, offsets } = req.body;
 
   try {
     // Find the user and populate the Posts field
@@ -200,7 +199,7 @@ router.post("/getUserPosts", async (req, res) => {
     // Paginate the populated posts
     const paginatedPosts = user.Posts.slice(offsets, offsets + 5);
     const hasMore = offsets + 5 < user.Posts.length;
-    res.send({ posts: paginatedPosts, hasMore });
+    res.status(200).json({ posts: paginatedPosts, hasMore });
   } catch (error) {
     console.error("Error fetching user posts:", error);
     res.status(500).send({ message: "An error occurred while fetching posts" });
@@ -244,7 +243,7 @@ router.post("/likePost/:postId", async (req, res) => {
 
     // Increment the Like count and add the user to the LikedUsers array
     post.Like += 1;
-    post.LikedUsers.push({ LikedUser: userId, LikedTime: LikedTime });
+    post.LikedUsers.unshift({ LikedUser: userId, LikedTime: LikedTime });
     await postOwner.save();
 
     // Fetch the liked user's details
@@ -296,7 +295,7 @@ router.post("/unlikePost/:postId", async (req, res) => {
       (likeEntry) => likeEntry.LikedUser.toString() === userId
     );
 
-    if (!alreadyLiked) {
+    if (!alreadyLiked || post.Like < 0) {
       return res
         .status(400)
         .json({ message: "User has not liked this post yet" });
@@ -311,7 +310,7 @@ router.post("/unlikePost/:postId", async (req, res) => {
 
     res.status(200).json({
       message: "Post unliked successfully",
-      post,
+      // post,
     });
   } catch (error) {
     console.error("Error unliking post:", error);
@@ -400,7 +399,7 @@ router.post("/commentPost/:postId", async (req, res) => {
     const post = postOwner.Posts.id(postId);
 
     // Add the comment to the post's Comments array
-    post.Comments.push({
+    post.Comments.unshift({
       commentedBy: userId,
       commentText,
       commentedAt: commentTime,
