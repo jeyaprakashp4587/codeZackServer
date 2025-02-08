@@ -89,6 +89,44 @@ router.post("/removeConnection/:id", async (req, res) => {
     res.status(500).send("Error removing connection");
   }
 });
+// get user for fetch mutual user and send the user id to cliet
+router.get("/getNetworks/:id", async (req, res) => {
+  const { id } = req.params;
+  const { skip = 0, limit = 10 } = req.query;
+  try {
+    const selectedUser = await User.findById(id);
+    const users = [];
+    if (selectedUser) {
+      const paginatedConnections = selectedUser.Connections.slice(
+        parseInt(skip),
+        parseInt(skip) + parseInt(limit)
+      );
+      await Promise.all(
+        paginatedConnections.map(async (connection) => {
+          try {
+            const user = await User.findById(connection.ConnectionsdId);
+            if (user) {
+              users.push({
+                id: user._id,
+              });
+            }
+          } catch (error) {
+            console.error(
+              `Error fetching user with ID ${connection.ConnectionsdId}:`,
+              error
+            );
+          }
+        })
+      );
+      res.status(200).json({ users });
+    } else {
+      res.status(404);
+    }
+  } catch (error) {
+    console.error("Error fetching user networks:", error);
+    res.status(500);
+  }
+});
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {
   const { id } = req.params;
@@ -116,21 +154,28 @@ router.get("/getNetworks/:id", async (req, res) => {
               });
             }
           } catch (error) {
-            console.error(`Error fetching user with ID ${connection.ConnectionsdId}:`, error);
+            console.error(
+              `Error fetching user with ID ${connection.ConnectionsdId}:`,
+              error
+            );
           }
         })
       );
       const hasMore = parseInt(skip) + parseInt(limit) < totalConnections; // Determine if more connections exist
       res.status(200).json({ users, hasMore });
     } else {
-      res.status(404).json({ success: false, message: "User not found", hasMore: false });
+      res
+        .status(404)
+        .json({ success: false, message: "User not found", hasMore: false });
     }
   } catch (error) {
     console.error("Error fetching user networks:", error);
-    res.status(500).json({ success: false, message: "Internal server error", hasMore: false });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      hasMore: false,
+    });
   }
 });
-
-
 
 module.exports = router;
