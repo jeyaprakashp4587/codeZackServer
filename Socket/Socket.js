@@ -59,6 +59,7 @@ const initializeSocket = (server) => {
             io.to(Receiver.SocketId).emit("Receive-Noti", {
               text: `You are Connected With ${Sender.firstName} ${Sender.LastName}`,
             });
+            console.log("noti sended");
           }
 
           // Send FCM Notification
@@ -236,8 +237,11 @@ const initializeSocket = (server) => {
                 title: "Your Post Got a Like!",
                 body: `${user.firstName} ${user.LastName} liked your post`,
                 imageUrl: user.Images.profile,
-
-                icon: "https://i.ibb.co/j6qShGt/CC.png",
+              },
+              android: {
+                notification: {
+                  icon: "https://i.ibb.co/j6qShGt/CC.png",
+                },
               },
               data: {
                 type: "like",

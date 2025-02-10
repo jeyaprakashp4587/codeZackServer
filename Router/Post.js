@@ -69,6 +69,7 @@ router.post("/uploadPost", async (req, res) => {
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
   const { id: userId } = req.params;
+  console.log(userId, postId);
 
   try {
     // Validate userId and postId

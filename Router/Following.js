@@ -89,85 +89,83 @@ router.post("/removeConnection/:id", async (req, res) => {
     res.status(500).send("Error removing connection");
   }
 });
-// get user for fetch mutual user and send the user id to cliet
-router.get("/getNetworks/:id", async (req, res) => {
-  const { id } = req.params;
-  const { skip = 0, limit = 10 } = req.query;
+// get user for fetch mutual user and send the user id to client
+router.post("/getMutuals", async (req, res) => {
+  const { selectedUserId, userId } = req.body;
   try {
-    const selectedUser = await User.findById(id);
-    const users = [];
-    if (selectedUser) {
-      const paginatedConnections = selectedUser.Connections.slice(
-        parseInt(skip),
-        parseInt(skip) + parseInt(limit)
-      );
-      await Promise.all(
-        paginatedConnections.map(async (connection) => {
-          try {
-            const user = await User.findById(connection.ConnectionsdId);
-            if (user) {
-              users.push({
-                id: user._id,
-              });
-            }
-          } catch (error) {
-            console.error(
-              `Error fetching user with ID ${connection.ConnectionsdId}:`,
-              error
-            );
-          }
-        })
-      );
-      res.status(200).json({ users });
-    } else {
-      res.status(404);
+    const selectedUser = await User.findById(selectedUserId).lean();
+    if (!selectedUser) {
+      return res.status(404).json({ message: "Selected user not found" });
     }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Selected user connections
+    const selectedUserConnectionsId =
+      selectedUser.Connections?.map(
+        (connection) => connection.ConnectionsdId
+      ) || [];
+    // Current user connections
+    const userConnectionsId =
+      user.Connections?.map((connection) => connection.ConnectionsdId) || [];
+    // Return empty if either has no connections
+    if (!userConnectionsId.length || !selectedUserConnectionsId.length) {
+      return res.status(200).json({ users: [] });
+    }
+    // Find mutual connections
+    const mutualsIds = selectedUserConnectionsId.filter((id) =>
+      userConnectionsId.includes(id)
+    );
+    // Fetch mutual user data
+    const mutualUserData = await User.find({ _id: { $in: mutualsIds } }).select(
+      "firstName Images.profile"
+    );
+    res.status(200).json({ users: mutualUserData });
   } catch (error) {
-    console.error("Error fetching user networks:", error);
-    res.status(500);
+    console.error("Error fetching mutual connections:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {
   const { id } = req.params;
-  const { skip = 0, limit = 10 } = req.query;
+  const skip = parseInt(req.query.skip) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+
   try {
-    const selectedUser = await User.findById(id);
-    const users = [];
-    if (selectedUser) {
-      const totalConnections = selectedUser.Connections.length;
-      const paginatedConnections = selectedUser.Connections.slice(
-        parseInt(skip),
-        parseInt(skip) + parseInt(limit)
-      );
-      await Promise.all(
-        paginatedConnections.map(async (connection) => {
-          try {
-            const user = await User.findById(connection.ConnectionsdId);
-            if (user) {
-              users.push({
-                firstName: user.firstName,
-                lastName: user.LastName,
-                profileImg: user.Images.profile,
-                id: user._id,
-                onlineStatus: user.onlineStatus,
-              });
-            }
-          } catch (error) {
-            console.error(
-              `Error fetching user with ID ${connection.ConnectionsdId}:`,
-              error
-            );
-          }
-        })
-      );
-      const hasMore = parseInt(skip) + parseInt(limit) < totalConnections; // Determine if more connections exist
-      res.status(200).json({ users, hasMore });
-    } else {
-      res
+    const selectedUser = await User.findById(id).lean();
+    if (!selectedUser) {
+      return res
         .status(404)
         .json({ success: false, message: "User not found", hasMore: false });
     }
+
+    const totalConnections = selectedUser.Connections.length;
+    const paginatedConnections = selectedUser.Connections.slice(
+      skip,
+      skip + limit
+    );
+    const connectionIds = paginatedConnections.map((c) => c.ConnectionsdId);
+
+    // Fetch all users in a single query
+    const users = await User.find({ _id: { $in: connectionIds } })
+      .select("_id firstName LastName Images.profile onlineStatus")
+      .lean();
+
+    // Keep the structure exactly as required
+    const formattedUsers = users.map((user) => ({
+      firstName: user.firstName,
+      lastName: user.LastName,
+      profileImg: user.Images?.profile || "",
+      id: user._id,
+      onlineStatus: user.onlineStatus,
+    }));
+
+    const hasMore = skip + limit < totalConnections; // Check if more data exists
+
+    res.status(200).json({ users: formattedUsers, hasMore });
   } catch (error) {
     console.error("Error fetching user networks:", error);
     res.status(500).json({
