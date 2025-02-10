@@ -33,7 +33,12 @@ const initializeSocket = (server) => {
     }
     // check user notifiation
     socket.on("checkNotification", (data) => {
-      console.log(data);
+      try {
+        if (data.socketId == socket.id) {
+          // console.log(data.socketId);
+          io.to(data.socketId).emit("updateNoti", { text: "update" });
+        }
+      } catch (error) {}
     });
     // Listen for notification events
     socket.on("sendNotificationForConnection", async (data) => {

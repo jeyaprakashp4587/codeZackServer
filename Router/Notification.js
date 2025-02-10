@@ -81,6 +81,22 @@ router.get("/getNotifications/:userId", async (req, res) => {
     res.status(500).send({ message: "Server error.", error: error.message });
   }
 });
+router.get("/getNotificationsLength/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const unSeenNotification = user.Notifications.filter(
+      (notification) => !notification.seen
+    );
+    return res.status(200).json({ notiLength: unSeenNotification.length });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 // PATCH request to mark a notification as seen
 router.patch("/markAsSeen/:userId/:notificationId", async (req, res) => {
