@@ -125,6 +125,7 @@ router.post("/setOnlineStatus/:id", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
+    console.log(user.onlineStatus);
 
     // Respond with the updated user object
     res.status(200).json({
@@ -138,7 +139,5 @@ router.post("/setOnlineStatus/:id", async (req, res) => {
       .json({ error: "Internal Server Error. Please try again later." });
   }
 });
-
-module.exports = router;
 
 module.exports = router;

@@ -57,7 +57,6 @@ router.get("/getAllActivityDates/:id", async (req, res) => {
     if (user) {
       const dates = user.Activities.map((activity) => activity.date);
       // console.log(dates);
-
       res.send(dates);
     } else {
       res.status(404).send("User not found");
