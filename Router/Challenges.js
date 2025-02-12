@@ -215,9 +215,9 @@ router.get("/getAllTutorials", async (req, res) => {
 });
 // get all premium projects
 router.get("/getAllProjects", async (_, res) => {
-  const projectsCollection = DB1.collection("Projects");
-  const cursor = await projectsCollection.find({}).toArray();
   try {
+    const projectsCollection = DB1.collection("Projects");
+    const cursor = await projectsCollection.find({}).toArray();
     if (cursor.length > 0) {
       res.status(200).json({ projects: cursor });
     } else {
