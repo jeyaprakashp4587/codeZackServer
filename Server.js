@@ -18,23 +18,17 @@ const Placement = require("./Router/Placement");
 const Interview = require("./Router/Interview");
 const Assignments = require("./Router/Assignments");
 const Jobs = require("./Router/Jobs");
-const socket = require("./Socket/Socket");
-const initializeFirebaseAdmin = require("./firebase/firebaseAdmin");
 const app = express();
 const server = http.createServer(app);
 app.use(bodyParser.json());
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
-initializeFirebaseAdmin();
-// initializeSocket(server);
 // Connect databases
 DB1.on("connected", () => {
   console.log("DB1 is connected");
 });
 DB2.on("connected", () => {
   console.log("DB2 is connected");
-  socket(server);
 });
 // Routers
 app.use("/LogIn", LogIn);
