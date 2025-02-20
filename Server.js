@@ -45,7 +45,7 @@ app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
 app.use("/InterView", Interview);
 app.use("/Jobs", Jobs);
-// Port listening
+// Port listening for 
 const port = 8080;
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
