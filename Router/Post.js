@@ -49,7 +49,6 @@ router.post("/uploadPost", async (req, res) => {
         await connectionUser.save();
       }
     }
-
     // Fetch the latest 5 posts of the user
     const updatedUserPosts = user.Posts.slice(0, 5); // Get the first 5 posts (most recent)
 
@@ -57,7 +56,8 @@ router.post("/uploadPost", async (req, res) => {
     res.status(200).send({
       text: "Post uploaded successfully",
       postId,
-      Posts: updatedUserPosts, // Send the latest 5 posts
+      Posts: updatedUserPosts,
+      userPostLength: user.PostLength,
     });
   } catch (error) {
     console.error("Error uploading post:", error);
@@ -69,8 +69,6 @@ router.post("/uploadPost", async (req, res) => {
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
   const { id: userId } = req.params;
-  console.log(userId, postId);
-
   try {
     // Validate userId and postId
     if (
@@ -93,8 +91,12 @@ router.post("/deletePost/:id", async (req, res) => {
     }
     // Remove the post from user's Posts array
     user.Posts = user.Posts.filter((post) => post._id.toString() !== postId);
+    await User.findByIdAndUpdate(
+      userId,
+      { $inc: { PostLength: -1 } },
+      { new: true }
+    );
     await user.save();
-    // Remove the post from connections' ConnectionsPost lists
     await Promise.all(
       user.Connections.map(async (connection) => {
         const connectionUser = await User.findById(connection.ConnectionsdId);
@@ -110,7 +112,9 @@ router.post("/deletePost/:id", async (req, res) => {
     // Get the latest 5 posts after deletion
     const updatedUserPosts = user.Posts.slice(0, 5);
     // Respond with the updated posts
-    return res.status(200).json({ Posts: updatedUserPosts });
+    return res
+      .status(200)
+      .json({ Posts: updatedUserPosts, userPostLength: user.PostLength });
   } catch (error) {
     console.error("Error in deletePost route:", error);
     return res
