@@ -435,6 +435,31 @@ router.post("/commentPost/:postId", async (req, res) => {
       .json({ message: "An error occurred while adding the comment." });
   }
 });
+router.post("/deletePost", async (req, res) => {
+  const { postId, commentedBy } = req.query;
+  try {
+    if (
+      !mongoose.Types.ObjectId.isValid(postId) ||
+      !mongoose.Types.ObjectId.isValid(commentedBy)
+    ) {
+      return res.status(400).json({ message: "Invalid postId or userId" });
+    }
+    const postOwner = await User.findOne({ "Post._id": postId });
+    if (!postOwner) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    // Find the specific post within the user's posts
+    const post = postOwner.Posts.id(postId);
+    // remove the commented by user posted commented using filter
+    const filteredComments = post.Comments.filter(
+      (comments) => commentedBy != comments.commentedBy
+    );
+    await postOwner.save();
+    res.send(200);
+  } catch (error) {
+    res.send(504);
+  }
+});
 // ---- get comments
 router.get("/getComments/:postId", async (req, res) => {
   try {
@@ -544,7 +569,7 @@ router.get("/getPostDetails/:postId", async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
     // console.log(postDetails[0]);
-    res.send(postDetails[0]); // Send the post details
+    res.status(200).send(postDetails[0]); // Send the post details
   } catch (error) {
     console.error("Error retrieving post details:", error);
     res.status(500).json({
