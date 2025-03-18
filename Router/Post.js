@@ -435,7 +435,7 @@ router.post("/commentPost/:postId", async (req, res) => {
       .json({ message: "An error occurred while adding the comment." });
   }
 });
-router.post("/deletePost", async (req, res) => {
+router.post("/deleteComment", async (req, res) => {
   const { postId, commentedBy } = req.query;
   try {
     if (
