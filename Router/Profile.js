@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
+const { DB1 } = require("../Database/CCDB");
 
 // Upload user profile and cover photo
 router.post("/updateProfileImages", async (req, res) => {
@@ -137,6 +138,17 @@ router.post("/setOnlineStatus/:id", async (req, res) => {
     res
       .status(500)
       .json({ error: "Internal Server Error. Please try again later." });
+  }
+});
+// get app version name
+router.get("/Getlatest-version", async (req, res) => {
+  try {
+    const collection = DB1.collection("AppVersion");
+    const getVersion = await collection.find({}).toArray();
+    console.log(getVersion);
+    res.status(200).json({ version: getVersion[0].version });
+  } catch (error) {
+    res.status(504);
   }
 });
 
