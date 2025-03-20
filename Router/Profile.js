@@ -145,7 +145,7 @@ router.get("/Getlatest-version", async (req, res) => {
   try {
     const collection = DB1.collection("AppVersion");
     const getVersion = await collection.find({}).toArray();
-    console.log(getVersion);
+    // console.log(getVersion);
     res.status(200).json({ version: getVersion[0].version });
   } catch (error) {
     res.status(504);
