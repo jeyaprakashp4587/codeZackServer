@@ -451,7 +451,7 @@ router.post("/deleteComment", async (req, res) => {
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
     // remove the commented by user posted commented using filter
-    const filteredComments = post.Comments.filter(
+    await post.Comments.filter(
       (comments) => commentedBy != comments.commentedBy
     );
     await postOwner.save();
@@ -460,7 +460,7 @@ router.post("/deleteComment", async (req, res) => {
     res.send(504);
   }
 });
-// ---- get comments
+// ---- get comments ----
 router.get("/getComments/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
