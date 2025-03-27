@@ -24,6 +24,7 @@ router.post("/uploadPost", async (req, res) => {
       SenderId: user._id,
       Comments: [],
       LikedUsers: [],
+      CommentsLength: 0,
       CreatedAt: new Date(), // Timestamp for when the post is created
     };
 
@@ -64,7 +65,6 @@ router.post("/uploadPost", async (req, res) => {
     res.status(500).send("An error occurred while uploading the post.");
   }
 });
-
 // Delete post
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
@@ -122,11 +122,10 @@ router.post("/deletePost/:id", async (req, res) => {
       .send("An internal server error occurred while deleting the post.");
   }
 });
-
 // Get connection posts
 router.get("/getConnectionPosts/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { skip = 0, limit = 10 } = req.query; // Default skip and limit
+  const { skip = 0, limit = 10 } = req.query;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -140,7 +139,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
 
     const postIds = user.ConnectionsPost.map((post) => post.postId);
     if (postIds.length === 0) {
-      return res.status(200).json([]); // No posts found
+      return res.status(200).json([]);
     }
 
     const posts = await User.aggregate([
@@ -169,7 +168,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.Comments": 1,
+          "Posts.CommentsLength": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
@@ -178,8 +177,8 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "SenderDetails._id": 1,
         },
       },
-      { $skip: parseInt(skip) }, // Skip posts for pagination
-      { $limit: parseInt(limit) }, // Limit the number of posts
+      { $skip: parseInt(skip) },
+      { $limit: parseInt(limit) },
     ]);
 
     res.status(200).json(posts);
@@ -202,7 +201,19 @@ router.post("/getUserPosts", async (req, res) => {
       return res.status(200).send({ posts: [], hasMore: false }); // Ensure proper response format
     }
     // Paginate the populated posts
-    const paginatedPosts = user.Posts.slice(offsets, offsets + 5);
+    const paginatedPosts = user.Posts.slice(offsets, offsets + 5).map(
+      (post) => ({
+        PostText: post.PostText,
+        PostLink: post.PostLink,
+        Images: post.Images,
+        Time: post.Time,
+        Like: post.Like,
+        SenderId: post.SenderId,
+        CommentsLength: post.CommentsLength,
+        LikedUsers: post.LikedUsers,
+        // Excluding Comments and LikedUsers
+      })
+    );
     const hasMore = offsets + 5 < user.Posts.length;
     res.status(200).json({ posts: paginatedPosts, hasMore });
   } catch (error) {
@@ -210,7 +221,6 @@ router.post("/getUserPosts", async (req, res) => {
     res.status(500).send({ message: "An error occurred while fetching posts" });
   }
 });
-
 // Like post
 router.post("/likePost/:postId", async (req, res) => {
   const { postId } = req.params;
@@ -388,21 +398,18 @@ router.post("/commentPost/:postId", async (req, res) => {
     ) {
       return res.status(400).json({ message: "Invalid postId or userId" });
     }
-
     if (!commentText) {
       return res.status(400).json({ message: "Comment text is required" });
     }
-
     // Find the user who owns the post
     const postOwner = await User.findOne({ "Posts._id": postId });
-
     if (!postOwner) {
       return res.status(404).json({ message: "Post not found" });
     }
-
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
-
+    // update comment length
+    await post.CommentsLength++;
     // Add the comment to the post's Comments array
     post.Comments.unshift({
       commentedBy: userId,
@@ -435,12 +442,13 @@ router.post("/commentPost/:postId", async (req, res) => {
       .json({ message: "An error occurred while adding the comment." });
   }
 });
+// delete post Comment
 router.post("/deleteComment", async (req, res) => {
-  const { postId, commentedBy } = req.query;
+  const { postId, commentedId } = req.query;
   try {
     if (
       !mongoose.Types.ObjectId.isValid(postId) ||
-      !mongoose.Types.ObjectId.isValid(commentedBy)
+      !mongoose.Types.ObjectId.isValid(commentedId)
     ) {
       return res.status(400).json({ message: "Invalid postId or userId" });
     }
@@ -450,14 +458,13 @@ router.post("/deleteComment", async (req, res) => {
     }
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
+    await post.CommentsLength--;
     // remove the commented by user posted commented using filter
-    await post.Comments.filter(
-      (comments) => commentedBy != comments.commentedBy
-    );
+    post.Comments.filter((comments) => commentedId != comments._id);
     await postOwner.save();
-    res.send(200);
+    res.status(200);
   } catch (error) {
-    res.send(504);
+    res.status(504);
   }
 });
 // ---- get comments ----
@@ -479,7 +486,6 @@ router.get("/getComments/:postId", async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-
     // Paginate the comments array
     const paginatedComments = post.Comments.slice(
       parseInt(skip),
@@ -555,7 +561,7 @@ router.get("/getPostDetails/:postId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.Comments": 1,
+          "Posts.CommentsLength": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
