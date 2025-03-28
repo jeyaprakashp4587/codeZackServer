@@ -21,7 +21,7 @@ router.post("/uploadPost", async (req, res) => {
       Images: Images,
       Time: Time,
       Like: 0,
-      CommentCount: 0, // Explicitly setting default values
+
       SenderId: user._id,
     };
     // Push the new post to the user's Posts array
@@ -109,7 +109,7 @@ router.post("/deletePost/:id", async (req, res) => {
       Time: post.Time,
       Like: post.Like,
       SenderId: post.SenderId,
-      CommentCount: post.CommentCount,
+      Comments: post.Comments,
       LikedUsers: post.LikedUsers,
       // Excluding Comments and LikedUsers
     }));
@@ -170,7 +170,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.CommentCount": 1,
+          "Posts.Comments": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
@@ -211,7 +211,7 @@ router.post("/getUserPosts", async (req, res) => {
         Time: post.Time,
         Like: post.Like,
         SenderId: post.SenderId,
-        CommentCount: post.CommentCount,
+        Comments: post.Comments,
         LikedUsers: post.LikedUsers,
         // Excluding Comments and LikedUsers
       })
@@ -411,11 +411,11 @@ router.post("/commentPost/:postId", async (req, res) => {
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
     // update comment length
-    await post.updateOne(
-      { _id: postId },
-      { $inc: { CommentCount: 1 } },
-      { new: true }
-    );
+    // await post.updateOne(
+    //   { _id: postId },
+    //   { $inc: { Comments: 1 } },
+    //   { new: true }
+    // );
     // Add the comment to the post's Comments array
     post.Comments.unshift({
       commentedBy: userId,
@@ -567,7 +567,7 @@ router.get("/getPostDetails/:postId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.CommentCount": 1,
+          "Posts.Comments": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
