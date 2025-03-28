@@ -13,31 +13,24 @@ router.post("/uploadPost", async (req, res) => {
     // Find the user by ID
     const user = await User.findById(userId);
     if (!user) return res.status(404).send("User not found");
-
     // Create a new post object with a timestamp
     const newPost = {
+      number: 0, // Explicitly setting default values
       PostText: postText,
       PostLink: postLink,
       Images: Images,
       Time: Time,
       Like: 0,
+      CommentCount: 0, // Explicitly setting default values
       SenderId: user._id,
-      Comments: [],
-      LikedUsers: [],
-      CommentsLength: 0,
-      CreatedAt: new Date(), // Timestamp for when the post is created
     };
-
     // Push the new post to the user's Posts array
     user.Posts.unshift(newPost);
     await user.save();
-
     // Get the postId of the newly added post
     const postId = user.Posts[0]._id;
-
     // Increment post length
     await User.findByIdAndUpdate(userId, { $inc: { PostLength: 1 } });
-
     // Share the post with user's connections
     for (const connection of user.Connections) {
       const connectionUser = await User.findById(connection.ConnectionsdId);
@@ -52,7 +45,6 @@ router.post("/uploadPost", async (req, res) => {
     }
     // Fetch the latest 5 posts of the user
     const updatedUserPosts = user.Posts.slice(0, 5); // Get the first 5 posts (most recent)
-
     // Respond with the post ID and the latest posts
     res.status(200).send({
       text: "Post uploaded successfully",
@@ -110,7 +102,17 @@ router.post("/deletePost/:id", async (req, res) => {
       })
     );
     // Get the latest 5 posts after deletion
-    const updatedUserPosts = user.Posts.slice(0, 5);
+    const updatedUserPosts = user.Posts.slice(0, 5).map((post) => ({
+      PostText: post.PostText,
+      PostLink: post.PostLink,
+      Images: post.Images,
+      Time: post.Time,
+      Like: post.Like,
+      SenderId: post.SenderId,
+      CommentCount: post.CommentCount,
+      LikedUsers: post.LikedUsers,
+      // Excluding Comments and LikedUsers
+    }));
     // Respond with the updated posts
     return res
       .status(200)
@@ -168,7 +170,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.CommentsLength": 1,
+          "Posts.CommentCount": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
@@ -209,7 +211,7 @@ router.post("/getUserPosts", async (req, res) => {
         Time: post.Time,
         Like: post.Like,
         SenderId: post.SenderId,
-        CommentsLength: post.CommentsLength,
+        CommentCount: post.CommentCount,
         LikedUsers: post.LikedUsers,
         // Excluding Comments and LikedUsers
       })
@@ -409,7 +411,11 @@ router.post("/commentPost/:postId", async (req, res) => {
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
     // update comment length
-    await post.CommentsLength++;
+    await post.updateOne(
+      { _id: postId },
+      { $inc: { CommentCount: 1 } },
+      { new: true }
+    );
     // Add the comment to the post's Comments array
     post.Comments.unshift({
       commentedBy: userId,
@@ -458,7 +464,7 @@ router.post("/deleteComment", async (req, res) => {
     }
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
-    await post.CommentsLength--;
+
     // remove the commented by user posted commented using filter
     post.Comments.filter((comments) => commentedId != comments._id);
     await postOwner.save();
@@ -561,7 +567,7 @@ router.get("/getPostDetails/:postId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.CommentsLength": 1,
+          "Posts.CommentCount": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
