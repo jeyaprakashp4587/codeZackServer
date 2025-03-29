@@ -287,48 +287,29 @@ router.post("/likePost/:postId", async (req, res) => {
 router.post("/unlikePost/:postId", async (req, res) => {
   const { postId } = req.params;
   const { userId } = req.body;
-  // console.log(userId);
   try {
     // Validate userId and postId
     if (
-      !mongoose.Types.ObjectId.isValid(postId) ||
-      !mongoose.Types.ObjectId.isValid(userId)
+      !mongoose.isValidObjectId(postId) ||
+      !mongoose.isValidObjectId(userId)
     ) {
       return res.status(400).json({ message: "Invalid postId or userId" });
     }
-
-    // Find the user who owns the post
-    const postOwner = await User.findOne({ "Posts._id": postId });
-
-    if (!postOwner) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    // Find the specific post within the user's posts
-    const post = postOwner.Posts.id(postId);
-
-    // Check if the user has already liked the post
-    const alreadyLiked = post.LikedUsers.some(
-      (likeEntry) => likeEntry.LikedUser.toString() === userId
+    // Update post in a single query using $pull and $inc
+    const updatedUser = await User.findOneAndUpdate(
+      { "Posts._id": postId, "Posts.LikedUsers.LikedUser": userId },
+      {
+        $inc: { "Posts.$.Like": -1 },
+        $pull: { "Posts.$.LikedUsers": { LikedUser: userId } },
+      },
+      { new: true }
     );
-
-    if (!alreadyLiked || post.Like < 0) {
+    if (!updatedUser) {
       return res
-        .status(400)
-        .json({ message: "User has not liked this post yet" });
+        .status(404)
+        .json({ message: "Post not found or not liked by user" });
     }
-
-    // Decrement the Like count and remove the user from the LikedUsers array
-    post.Like -= 1;
-    post.LikedUsers = post.LikedUsers.filter(
-      (likeEntry) => likeEntry.LikedUser.toString() !== userId
-    );
-    await postOwner.save();
-
-    res.status(200).json({
-      message: "Post unliked successfully",
-      // post,
-    });
+    res.status(200).json({ message: "Post unliked successfully" });
   } catch (error) {
     console.error("Error unliking post:", error);
     res
@@ -391,7 +372,6 @@ router.get("/getLikedUsers/:postId", async (req, res) => {
 router.post("/commentPost/:postId", async (req, res) => {
   const { postId } = req.params;
   const { userId, commentText, commentTime } = req.body;
-  // console.log(userId, commentText, commentTime, postId);
   try {
     // Validate userId and postId
     if (
@@ -410,27 +390,35 @@ router.post("/commentPost/:postId", async (req, res) => {
     }
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
-    // update comment length
-    if (post) {
-      post.CommentCount += 1;
+    if (!post) {
+      return res.status(404).json({ message: "Post not found within user" });
     }
+    // Update comment length
+    post.CommentCount += 1;
     // Add the comment to the post's Comments array
-    post.Comments.unshift({
+    const newComment = {
       commentedBy: userId,
       commentText,
       commentedAt: commentTime,
-    });
+    };
+    post.Comments.unshift(newComment);
+    // Save postOwner document to update the post
     await postOwner.save();
+    // Fetch the newly created comment's ID
+    const newCommentId = post.Comments[0]._id;
     // Fetch the commented user's details
     const commentedUser = await User.findById(userId).select(
       "firstName LastName Images.profile _id"
     );
-
+    if (!commentedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
     res.status(200).json({
       message: "Comment added successfully",
       comment: {
+        _id: newCommentId,
         commentText,
-        commentedAt: Date.now(),
+        commentedAt: commentTime,
         firstName: commentedUser.firstName,
         LastName: commentedUser.LastName,
         profile: commentedUser.Images.profile,
@@ -446,29 +434,42 @@ router.post("/commentPost/:postId", async (req, res) => {
 });
 // delete post Comment
 router.post("/deleteComment", async (req, res) => {
-  const { postId, commentedId } = req.query;
   try {
+    const { postId, commentedId } = req.body;
+
+    // Validate IDs immediately
     if (
       !mongoose.Types.ObjectId.isValid(postId) ||
       !mongoose.Types.ObjectId.isValid(commentedId)
     ) {
-      return res.status(400).json({ message: "Invalid postId or userId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid postId or commentedId" });
     }
-    const postOwner = await User.findOne({ "Post._id": postId });
-    if (!postOwner) {
-      return res.status(404).json({ message: "Post not found" });
+    //  Directly update the comment count and remove the comment in one query
+    const result = await User.findOneAndUpdate(
+      { "Posts._id": postId },
+      {
+        $inc: { "Posts.$.CommentCount": -1 },
+        $pull: { "Posts.$.Comments": { _id: commentedId } },
+      },
+      { new: true }
+    );
+    // If no post found
+    if (!result) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
-    // Find the specific post within the user's posts
-    const post = postOwner.Posts.id(postId);
-    if (post) {
-      post.CommentCount += 1;
-    }
-    // remove the commented by user posted commented using filter
-    post.Comments.filter((comments) => commentedId != comments._id);
-    await postOwner.save();
-    res.status(200);
+    // console.log(
+    //   `✅ Comment deleted from Post: ${postId}, Remaining Count: ${result.Posts.CommentCount}`
+    // );
+    return res
+      .status(200)
+      .json({ success: true, message: "Comment deleted successfully" });
   } catch (error) {
-    res.status(504);
+    // console.error("❌ Error deleting comment:", error.message);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 });
 // ---- get comments ----
@@ -477,7 +478,7 @@ const { Types } = require("mongoose");
 router.get("/getComments/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
-    console.log(postId);
+    // console.log(postId);
 
     const { skip = 0, limit = 10 } = req.query; // Defaults to skip 0 and limit 10
 
@@ -519,6 +520,7 @@ router.get("/getComments/:postId", async (req, res) => {
         firstName: commentedUser?.firstName || "Unknown",
         LastName: commentedUser?.LastName || "User",
         profile: commentedUser?.Images?.profile || null,
+        _id: comment._id,
       };
     });
     const hasMore = post.Comments.length > parseInt(skip) + parseInt(limit);
@@ -569,7 +571,7 @@ router.get("/getPostDetails/:postId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.Comments": 1,
+          "Posts.CommentCount": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
