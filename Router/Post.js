@@ -21,7 +21,6 @@ router.post("/uploadPost", async (req, res) => {
       Images: Images,
       Time: Time,
       Like: 0,
-
       SenderId: user._id,
     };
     // Push the new post to the user's Posts array
@@ -170,7 +169,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "Posts.Images": 1,
           "Posts.Time": 1,
           "Posts.Like": 1,
-          "Posts.Comments": 1,
+          "Posts.CommentCount": 1,
           "Posts.LikedUsers": 1,
           "SenderDetails.firstName": 1,
           "SenderDetails.LastName": 1,
@@ -211,7 +210,7 @@ router.post("/getUserPosts", async (req, res) => {
         Time: post.Time,
         Like: post.Like,
         SenderId: post.SenderId,
-        Comments: post.Comments,
+        CommentCount: post.CommentCount,
         LikedUsers: post.LikedUsers,
         // Excluding Comments and LikedUsers
       })
@@ -411,11 +410,11 @@ router.post("/commentPost/:postId", async (req, res) => {
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
     // update comment length
-    // await post.updateOne(
-    //   { _id: postId },
-    //   { $inc: { Comments: 1 } },
-    //   { new: true }
-    // );
+    await post.updateOne(
+      { _id: postId },
+      { $inc: { CommentCount: 1 } },
+      { new: true }
+    );
     // Add the comment to the post's Comments array
     post.Comments.unshift({
       commentedBy: userId,
@@ -464,7 +463,11 @@ router.post("/deleteComment", async (req, res) => {
     }
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
-
+    await post.updateOne(
+      { _id: postId },
+      { $inc: { CommentCount: -1 } },
+      { new: true }
+    );
     // remove the commented by user posted commented using filter
     post.Comments.filter((comments) => commentedId != comments._id);
     await postOwner.save();
@@ -474,6 +477,8 @@ router.post("/deleteComment", async (req, res) => {
   }
 });
 // ---- get comments ----
+const { Types } = require("mongoose");
+
 router.get("/getComments/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
@@ -492,31 +497,31 @@ router.get("/getComments/:postId", async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
+
     // Paginate the comments array
     const paginatedComments = post.Comments.slice(
       parseInt(skip),
       parseInt(skip) + parseInt(limit)
     );
-
-    const commentUserIds = paginatedComments.map(
-      (comment) => comment.commentedBy
-    );
+    // Ensure commentedBy contains only valid IDs
+    const commentUserIds = paginatedComments
+      .map((comment) => comment.commentedBy)
+      .filter((id) => Types.ObjectId.isValid(id)); // Remove invalid IDs
     const commentedUsers = await User.find(
       { _id: { $in: commentUserIds } },
       "firstName LastName Images.profile _id"
     );
-
     const commentsWithUserDetails = paginatedComments.map((comment) => {
       const commentedUser = commentedUsers.find(
-        (user) => user._id.toString() === comment.commentedBy.toString()
+        (user) => user._id.toString() === comment.commentedBy?.toString()
       );
       return {
         commentText: comment.commentText,
         commentedAt: comment.commentedAt,
-        userId: commentedUser._id,
-        firstName: commentedUser.firstName,
-        LastName: commentedUser.LastName,
-        profile: commentedUser.Images.profile,
+        userId: commentedUser?._id || null,
+        firstName: commentedUser?.firstName || "Unknown",
+        LastName: commentedUser?.LastName || "User",
+        profile: commentedUser?.Images?.profile || null,
       };
     });
     const hasMore = post.Comments.length > parseInt(skip) + parseInt(limit);

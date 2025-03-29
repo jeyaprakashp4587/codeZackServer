@@ -28,6 +28,7 @@ const UserSchema = new Schema({
       Images: Array,
       Time: String,
       Like: Number,
+      CommentCount: { type: Number, default: 0 },
       SenderId: mongoose.Types.ObjectId,
       Comments: [
         {
