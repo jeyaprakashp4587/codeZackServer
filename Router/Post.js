@@ -212,6 +212,7 @@ router.post("/getUserPosts", async (req, res) => {
         SenderId: post.SenderId,
         CommentCount: post.CommentCount,
         LikedUsers: post.LikedUsers,
+        _id: post._id,
         // Excluding Comments and LikedUsers
       })
     );
@@ -410,20 +411,16 @@ router.post("/commentPost/:postId", async (req, res) => {
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
     // update comment length
-    await post.updateOne(
-      { _id: postId },
-      { $inc: { CommentCount: 1 } },
-      { new: true }
-    );
+    if (post) {
+      post.CommentCount += 1;
+    }
     // Add the comment to the post's Comments array
     post.Comments.unshift({
       commentedBy: userId,
       commentText,
       commentedAt: commentTime,
     });
-
     await postOwner.save();
-
     // Fetch the commented user's details
     const commentedUser = await User.findById(userId).select(
       "firstName LastName Images.profile _id"
@@ -463,11 +460,9 @@ router.post("/deleteComment", async (req, res) => {
     }
     // Find the specific post within the user's posts
     const post = postOwner.Posts.id(postId);
-    await post.updateOne(
-      { _id: postId },
-      { $inc: { CommentCount: -1 } },
-      { new: true }
-    );
+    if (post) {
+      post.CommentCount += 1;
+    }
     // remove the commented by user posted commented using filter
     post.Comments.filter((comments) => commentedId != comments._id);
     await postOwner.save();
@@ -482,6 +477,8 @@ const { Types } = require("mongoose");
 router.get("/getComments/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
+    console.log(postId);
+
     const { skip = 0, limit = 10 } = req.query; // Defaults to skip 0 and limit 10
 
     // Find the user who owns the post
