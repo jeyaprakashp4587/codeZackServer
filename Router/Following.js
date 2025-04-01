@@ -7,23 +7,11 @@ router.post("/findExistsConnection", async (req, res) => {
   try {
     const { ConnectionId, userId } = req.body;
 
-    // Use projection to limit the data retrieved from the database
-    const user = await User.findById(userId).select("Connections").lean();
-
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-
-    // Use 'some' for better performance when checking existence
-    const findExists = user.Connections.some(
-      (connection) => connection.ConnectionsdId == ConnectionId
-    );
-
-    if (findExists) {
-      res.send("Yes");
-    } else {
-      res.send("No");
-    }
+    const userExists = await User.exists({
+      _id: userId,
+      Connections: { $elemMatch: { ConnectionsdId: ConnectionId } },
+    });
+    res.send(userExists ? "Yes" : "No");
   } catch (error) {
     res.status(500).send("Error finding connection");
   }
@@ -34,61 +22,43 @@ router.post("/addConnection", async (req, res) => {
   try {
     const { ConnectionId, userId } = req.body;
 
-    // Use projection to limit the data retrieved from the database
-    const user = await User.findById(userId).select("Connections");
-
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-
-    // Check if the connection already exists to avoid duplicates
-    const connectionExists = user.Connections.some(
-      (connection) => connection.ConnectionsdId == ConnectionId
+    // Use `$addToSet` to add only if it doesn't exist
+    const result = await User.updateOne(
+      { _id: userId },
+      { $addToSet: { Connections: { ConnectionsdId: ConnectionId } } }
     );
 
-    if (connectionExists) {
+    if (result.modifiedCount === 0) {
       return res.status(400).send("Connection already exists");
     }
 
-    // Push the new connection
-    user.Connections.push({ ConnectionsdId: ConnectionId });
-
-    await user.save();
     res.send("Sucess");
   } catch (error) {
     res.status(500).send("Error adding connection");
   }
 });
-
 // Remove connection
 router.post("/removeConnection/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { ConnectionId } = req.body;
 
-    // Use projection to limit the data retrieved from the database
-    const user = await User.findById(id).select("Connections");
-
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-
-    // Filter out the connection to remove
-    const updatedConnections = user.Connections.filter(
-      (connection) => connection.ConnectionsdId != ConnectionId
+    // Use `$pull` to remove the connection directly
+    const result = await User.updateOne(
+      { _id: id },
+      { $pull: { Connections: { ConnectionsdId: ConnectionId } } }
     );
 
-    if (updatedConnections.length === user.Connections.length) {
+    if (result.modifiedCount === 0) {
       return res.status(400).send("Connection not found");
     }
 
-    user.Connections = updatedConnections;
-    await user.save();
     res.send("Done");
   } catch (error) {
     res.status(500).send("Error removing connection");
   }
 });
+
 // get user for fetch mutual user and send the user id to client
 router.post("/getMutuals", async (req, res) => {
   const { selectedUserId, userId } = req.body;
@@ -135,26 +105,25 @@ router.get("/getNetworks/:id", async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
 
   try {
-    const selectedUser = await User.findById(id).lean();
-    if (!selectedUser) {
+    // Retrieve only the necessary connection IDs using `$slice`
+    const selectedUser = await User.findById(id)
+      .select({ Connections: { $slice: [skip, limit] } })
+      .lean();
+
+    if (!selectedUser || !selectedUser.Connections.length) {
       return res
         .status(404)
         .json({ success: false, message: "User not found", hasMore: false });
     }
 
-    const totalConnections = selectedUser.Connections.length;
-    const paginatedConnections = selectedUser.Connections.slice(
-      skip,
-      skip + limit
-    );
-    const connectionIds = paginatedConnections.map((c) => c.ConnectionsdId);
+    const connectionIds = selectedUser.Connections.map((c) => c.ConnectionsdId);
 
-    // Fetch all users in a single query
+    // Fetch connected users in a single query
     const users = await User.find({ _id: { $in: connectionIds } })
       .select("_id firstName LastName Images.profile onlineStatus")
       .lean();
 
-    // Keep the structure exactly as required
+    // Keep response format exactly as required
     const formattedUsers = users.map((user) => ({
       firstName: user.firstName,
       lastName: user.LastName,
@@ -163,7 +132,11 @@ router.get("/getNetworks/:id", async (req, res) => {
       onlineStatus: user.onlineStatus,
     }));
 
-    const hasMore = skip + limit < totalConnections; // Check if more data exists
+    // Check if more data exists
+    const totalConnections = await User.findById(id)
+      .select("Connections")
+      .lean();
+    const hasMore = skip + limit < totalConnections.Connections.length;
 
     res.status(200).json({ users: formattedUsers, hasMore });
   } catch (error) {
