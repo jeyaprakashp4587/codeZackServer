@@ -78,7 +78,7 @@ router.post("/addInterView", async (req, res) => {
 });
 // set the current question to campany
 router.post("/setQuestionLength", async (req, res) => {
-  const { userId, companyName, currentQuestion } = req.body;
+  const { userId, companyName, currentQuestion, resetWeek = false } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -87,6 +87,9 @@ router.post("/setQuestionLength", async (req, res) => {
     );
     if (findCompany) {
       findCompany.currentQuestionLength = currentQuestion;
+      if (resetWeek) {
+        findCompany.currentWeek = 1;
+      }
       await user.save();
       res.status(200).json({ InterView: user?.InterView });
     } else {
