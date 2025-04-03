@@ -79,7 +79,7 @@ router.post("/addInterView", async (req, res) => {
 // set the current question to campany
 router.post("/setQuestionLength", async (req, res) => {
   const { userId, companyName, currentQuestion } = req.body;
-  // console.log(userId, companyName, currentQuestion);
+
   try {
     const user = await User.findById(userId);
     const findCompany = user.InterView.find(
