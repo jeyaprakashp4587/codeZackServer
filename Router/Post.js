@@ -127,7 +127,6 @@ router.post("/deletePost/:id", async (req, res) => {
 router.get("/getConnectionPosts/:userId", async (req, res) => {
   const { userId } = req.params;
   const { skip = 0, limit = 10 } = req.query;
-
   try {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).send("Invalid userId");
@@ -533,7 +532,7 @@ router.get("/getComments/:postId", async (req, res) => {
     // Ensure commentedBy contains only valid IDs
     const commentUserIds = paginatedComments
       .map((comment) => comment.commentedBy)
-      .filter((id) => Types.ObjectId.isValid(id)); // Remove invalid IDs
+      .filter((id) => mongoose.Types.ObjectId.isValid(id)); // Remove invalid IDs
     const commentedUsers = await User.find(
       { _id: { $in: commentUserIds } },
       "firstName LastName Images.profile _id"
