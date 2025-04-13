@@ -5,7 +5,7 @@ const { DB1 } = require("../Database/CCDB");
 // get all jobs
 router.get("/getAllJobs", async (req, res) => {
   try {
-    const Collection = DB1.collection("Jobbs");
+    const Collection = DB1.collection("Jobgs");
     const jobs = await Collection.find().toArray(); // Await the result
     if (jobs.length > 0) {
       // console.log(jobs);
