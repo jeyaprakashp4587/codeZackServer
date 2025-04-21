@@ -33,7 +33,9 @@ DB1.on("connected", () => {
 DB2.on("connected", () => {
   console.log("DB2 is connected");
 });
-app.get("/",(req,res) => res.send("server is alive"))
+app.get("/",(req,res) => {
+  res.send("server is alive")
+})
 // Routers
 app.use("/LogIn", LogIn);
 app.use("/Courses", Course);
