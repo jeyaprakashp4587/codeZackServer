@@ -17,12 +17,15 @@ const Notification = require("./Router/Notification");
 const Placement = require("./Router/Placement");
 const Interview = require("./Router/Interview");
 const Assignments = require("./Router/Assignments");
+const socket = require("./Socket/Socket");
 const Jobs = require("./Router/Jobs");
 const app = express();
 const server = http.createServer(app);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
+// init
+socket(server);
 // Connect databases
 DB1.on("connected", () => {
   console.log("DB1 is connected");
@@ -45,7 +48,7 @@ app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
 app.use("/InterView", Interview);
 app.use("/Jobs", Jobs);
-// Port listening for 
+// Port listening for
 const port = 8080;
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
