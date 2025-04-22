@@ -310,19 +310,6 @@ const initializeSocket = (server) => {
         console.error("Error sending comment notification:", err.message);
       }
     });
-
-    // Handle socket disconnection
-    socket.on("disconnect", async () => {
-      console.log(`User disconnected: ${socket.id}`);
-      try {
-        await User.findOneAndUpdate(
-          { SocketId: socket.id },
-          { SocketId: null }
-        );
-      } catch (error) {
-        console.error("Error handling disconnect:", error.message);
-      }
-    });
   });
 };
 
