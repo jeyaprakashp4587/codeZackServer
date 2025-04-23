@@ -277,12 +277,12 @@ router.post("/resetNewPassword", async (req, res) => {
     // Find the user by email
     const user = await User.findOne({ Email: email });
     // console.log(user);
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     if (!user) {
       console.log("no user found");
       return res.status(404).json({ message: "User not found." });
     } else {
-      user.Password = password;
+      user.Password = hashedPassword;
       await user.save();
       return res.status(200).json({ msg: "ok" });
     }
