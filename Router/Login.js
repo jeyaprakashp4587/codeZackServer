@@ -218,6 +218,7 @@ router.post("/getUser", async (req, res) => {
 // send resetPass otp
 router.post("/sendResetPassOtp", async (req, res) => {
   const { email, otp } = req.body;
+  console.log(email, otp);
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
