@@ -67,36 +67,34 @@ router.post("/getMutuals", async (req, res) => {
     if (!selectedUser) {
       return res.status(404).json({ message: "Selected user not found" });
     }
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).lean();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    // Selected user connections
+    // Extract connection IDs
     const selectedUserConnectionsId =
-      selectedUser.Connections?.map(
-        (connection) => connection.ConnectionsdId
-      ) || [];
-    // Current user connections
+      selectedUser.Connections?.map((connection) => connection.ConnectionsdId) || [];
     const userConnectionsId =
       user.Connections?.map((connection) => connection.ConnectionsdId) || [];
-    // Return empty if either has no connections
     if (!userConnectionsId.length || !selectedUserConnectionsId.length) {
       return res.status(200).json({ users: [] });
     }
-    // Find mutual connections
+    // Find mutual connection IDs
     const mutualsIds = selectedUserConnectionsId.filter((id) =>
       userConnectionsId.includes(id)
     );
-    // Fetch mutual user data
-    const mutualUserData = await User.find({ _id: { $in: mutualsIds } }).select(
-      "firstName Images.profile"
-    );
+    // Take only the first 3 mutuals
+    const limitedMutualIds = mutualsIds.slice(0, 3);
+    // Fetch only those 3 users
+    const mutualUserData = await User.find({ _id: { $in: limitedMutualIds } })
+      .select("firstName Images.profile");
     res.status(200).json({ users: mutualUserData });
   } catch (error) {
     console.error("Error fetching mutual connections:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {

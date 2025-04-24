@@ -71,6 +71,7 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
           InstitudeName: 1,
           "Images.coverImg": 1,
           "Images.profile": 1,
+          District:1
         },
       },
     ]);

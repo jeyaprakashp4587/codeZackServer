@@ -60,7 +60,7 @@ const initializeSocket = (server) => {
             Time,
           });
 
-          await Receiver.save();
+          await Receiver.save();	
 
           // Socket
           if (Receiver.SocketId) {
@@ -158,6 +158,7 @@ const initializeSocket = (server) => {
       async ({ receivingUserId, postId }, callback) => {
         const time = moment().format("YYYY-MM-DDTHH:mm:ss");
         try {
+        console.log( receivingUserId, postId );
           const sender = await User.findById(userId);
           const receiver = await User.findById(receivingUserId);
           if (!sender || !receiver) throw new Error("User not found");
@@ -205,10 +206,11 @@ const initializeSocket = (server) => {
     // === LIKE NOTIFICATION
     socket.on("LikeNotiToUploader", async ({ Time, postId, senderId }) => {
       try {
+         console.log( Time, postId, senderId);
         const liker = await User.findById(userId);
         const postOwner = await User.findById(senderId);
         if (!liker || !postOwner) return;
-
+         
         postOwner.Notifications.push({
           NotificationSender: liker._id,
           NotificationType: "post",
@@ -252,6 +254,7 @@ const initializeSocket = (server) => {
     // === COMMENT NOTIFICATION
     socket.on("CommentNotiToUploader", async ({ Time, postId, senderId }) => {
       try {
+      console.log( Time, postId, senderId);
         const commenter = await User.findById(userId);
         const postOwner = await User.findById(senderId);
         if (!commenter || !postOwner) return;
@@ -279,8 +282,10 @@ const initializeSocket = (server) => {
               title: "New Comment!",
               body: `${commenter.firstName} ${commenter.LastName} commented on your post`,
               imageUrl: commenter.Images?.profile,
-              icon: "https://i.ibb.co/j6qShGt/CC.png",
             },
+             android: {
+                notification: { icon: "https://i.ibb.co/j6qShGt/CC.png" },
+              },
             data: {
               type: "comment",
               postId,
