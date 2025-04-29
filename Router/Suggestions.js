@@ -60,7 +60,6 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
     if (!currentUser) {
       return res.status(404).send("User not found");
     }
-
     const users = await User.aggregate([
       { $sample: { size: 1000 } },
       {
@@ -84,7 +83,6 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
           (connection) => connection.ConnectionsdId == user._id.toString()
         )
     );
-
     // Apply skip and limit for infinite loading
     const paginatedUsers = filteredUsers.slice(
       parsedSkip,

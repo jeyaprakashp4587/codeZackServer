@@ -87,6 +87,9 @@ router.post("/signUp", async (req, res) => {
   const coverImages = [
     "https://i.ibb.co/d0dBtHy/2148430879.jpg",
     "https://i.ibb.co/sKGscq7/129728.jpg",
+    "https://i.ibb.co/1ftwdd2C/2151555015.jpg",
+    "https://i.ibb.co/Q7CTPVzG/2151436574.jpg",
+    "https://i.ibb.co/SXzRmyKH/108265.jpg",
   ];
   const boyProfileImages = [
     "https://i.ibb.co/N1q9xbz/boy3.jpg",
