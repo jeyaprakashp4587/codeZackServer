@@ -15,8 +15,8 @@ const initializeSocket = (server) => {
 
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
-
-    if (!userId) {
+  console.log(userId);
+    if (!userId || userId == undefined) {
       console.warn("No userId provided in socket connection.");
       return;
     }
