@@ -54,9 +54,7 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
     const { skip = 0, limit = 6 } = req.query;
     const parsedSkip = parseInt(skip, 10);
     const parsedLimit = parseInt(limit, 10);
-    // Find the current user and get their connections
     const currentUser = await User.findById(id).select("Connections").lean();
-
     if (!currentUser) {
       return res.status(404).send("User not found");
     }
@@ -64,32 +62,36 @@ router.get("/getAllSuggestions/:id", async (req, res) => {
       { $sample: { size: 1000 } },
       {
         $project: {
-          _id: 1, // Include userId
+          _id: 1,
           firstName: 1,
           LastName: 1,
           InstitudeName: 1,
           "Images.coverImg": 1,
           "Images.profile": 1,
-          District:1
+          District: 1,
         },
       },
     ]);
-
-    // Filter out connected users
     const filteredUsers = users.filter(
       (user) =>
         user._id.toString() !== id &&
         !currentUser.Connections.some(
-          (connection) => connection.ConnectionsdId == user._id.toString()
+          (connection) =>
+            connection.ConnectionsdId.toString() === user._id.toString()
         )
     );
-    // Apply skip and limit for infinite loading
-    const paginatedUsers = filteredUsers.slice(
+    const uniqueUsersMap = new Map();
+    filteredUsers.forEach((user) => {
+      uniqueUsersMap.set(user._id.toString(), user);
+    });
+    const uniqueUsers = Array.from(uniqueUsersMap.values());
+    // Apply skip and limit
+    const paginatedUsers = uniqueUsers.slice(
       parsedSkip,
       parsedSkip + parsedLimit
     );
     res.json({
-      hasMore: filteredUsers.length > parsedSkip + parsedLimit,
+      hasMore: uniqueUsers.length > parsedSkip + parsedLimit,
       data: paginatedUsers,
     });
   } catch (error) {

@@ -8,7 +8,7 @@ router.get("/getAllJobs", async (req, res) => {
     const Collection = DB1.collection("Jobs");
     const jobs = await Collection.find().toArray(); // Await the result
     if (jobs.length > 0) {
-      // console.log(jobs);
+      console.log(jobs);
       return res.status(200).json({ jobs });
     } else {
       //   console.log("No jobs found.");
