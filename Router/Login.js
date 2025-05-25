@@ -108,12 +108,9 @@ router.post("/signUp", async (req, res) => {
     Email,
     Password,
     Gender,
-    Date_Of_Birth,
-    Degree_name,
     Institute_Name,
     State,
     District,
-    Nationality,
   } = req.body;
 
   // Convert the email to lowercase
@@ -136,12 +133,9 @@ router.post("/signUp", async (req, res) => {
       Email: lowerCaseEmail, // Save email in lowercase
       Password: hashedPassword,
       Gender: lowerGender,
-      DateOfBirth: Date_Of_Birth,
-      Degreename: Degree_name,
       InstitudeName: Institute_Name,
       State: State,
       District: District,
-      Nationality: Nationality,
       Images: {
         profile: profileImg ?? null,
         coverImg: coverImg ?? null,
