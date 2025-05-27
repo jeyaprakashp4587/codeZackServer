@@ -17,6 +17,7 @@ const Notification = require("./Router/Notification");
 const Placement = require("./Router/Placement");
 const Interview = require("./Router/Interview");
 const Assignments = require("./Router/Assignments");
+const Freelancing = require("./Router/Freelancing");
 const socket = require("./Socket/Socket");
 const Jobs = require("./Router/Jobs");
 const app = express();
@@ -33,9 +34,9 @@ DB1.on("connected", () => {
 DB2.on("connected", () => {
   console.log("DB2 is connected");
 });
-app.get("/",(req,res) => {
-  res.send("server is alive")
-})
+app.get("/", (req, res) => {
+  res.send("server is alive");
+});
 // Routers
 app.use("/LogIn", LogIn);
 app.use("/Courses", Course);
@@ -51,6 +52,7 @@ app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
 app.use("/InterView", Interview);
 app.use("/Jobs", Jobs);
+app.use("/Freelancing", Freelancing);
 // Port listening for
 const port = 8080;
 server.listen(port, () => {
