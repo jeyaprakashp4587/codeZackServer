@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const Projects = require("../Models/Projects");
+const { DB1 } = require("../Database/CCDB");
 
 router.post("/submitProject", async (req, res) => {
   try {
@@ -47,5 +48,17 @@ router.post("/submitProject", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
+router.get("/getAllProjects", async (req, res) => {
+  try {
+    const collection = DB1.collection("projects");
+    const projects = await collection.find({}).toArray();
+    if (projects.length > 0) {
+      res.status(200).json({ projects: projects });
+    } else {
+      res.status(404).json({ message: "No projects found" });
+    }
+  } catch (error) {
+    res.status(400);
+  }
+});
 module.exports = router;
