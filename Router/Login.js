@@ -147,14 +147,14 @@ router.post("/signUp", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "codezacknet@gmail.com",
-        pass: "qkdf cvsn pbei jrkm ", // Use App Password here if using Gmail
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // Compose email
     const mailOptions = {
-      from: "codezacknet@gmail.com",
+      from: process.env.EMAIL_USER,
       to: lowerCaseEmail,
       subject: "Welcome to CodeZack!",
       html: `

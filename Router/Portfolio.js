@@ -21,6 +21,7 @@ router.post("/getPortfolio", async (req, res) => {
     // Step 1: Fetch portfolio
     const collection = DB1.collection("Portfolios");
     const portfolio = await collection.findOne({ portfolioName: portName });
+    console.log(portfolio);
     if (!portfolio) return res.status(404).send("Portfolio not found");
 
     const { portfolioZip, portfolioName } = portfolio;
@@ -58,13 +59,13 @@ router.post("/getPortfolio", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "codezacknet@gmail.com",
-        pass: "qkdf cvsn pbei jrkm ",
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     await transporter.sendMail({
-      from: "codezacknet@gmail.com",
+      from: process.env.EMAIL_USER,
       to: userEmail,
       subject: "Your Modified Portfolio",
       text: "Hi! Your portfolio is ready. Please find the attached ZIP file.",
@@ -80,7 +81,7 @@ router.post("/getPortfolio", async (req, res) => {
     fs.rmSync(tempDir, { recursive: true, force: true });
     fs.unlinkSync(zipOutputPath);
 
-    res.send("Portfolio sent to your email!");
+    res.status(200).send("Portfolio sent to your email!");
   } catch (err) {
     console.error("Email send error:", err);
     res.status(500).send("Something went wrong while processing your request.");
