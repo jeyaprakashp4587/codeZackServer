@@ -18,6 +18,7 @@ router.post("/splash", async (req, res) => {
         ConnectionsPost: 0,
         Assignments: 0,
         Posts: 0,
+        Activities: 0,
       }
     ).lean();
     if (user) {
