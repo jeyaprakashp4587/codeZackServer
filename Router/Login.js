@@ -104,14 +104,14 @@ router.post("/signUp", async (req, res) => {
   ];
   // req body
   const {
-    First_Name,
-    Last_Name,
-    Email,
-    Password,
-    Gender,
-    Institute_Name,
-    State,
-    District,
+    firstName: First_Name,
+    lastName: Last_Name,
+    email: Email,
+    password: Password,
+    gender: Gender,
+    institution: Institute_Name,
+    state: State,
+    city: District,
   } = req.body;
 
   // Convert the email to lowercase
