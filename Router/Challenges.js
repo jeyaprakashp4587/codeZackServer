@@ -12,7 +12,6 @@ router.post("/addChallenge", async (req, res) => {
     ChallengeImage,
     ChallengeLevel,
   } = req.body;
-
   // Determine ChallengeType
   let ChType;
   switch (ChallengeType) {
@@ -27,7 +26,6 @@ router.post("/addChallenge", async (req, res) => {
     default:
       ChType = null;
   }
-
   const user = await User.findById(userId);
   if (user) {
     // Check if challenge already exists for user

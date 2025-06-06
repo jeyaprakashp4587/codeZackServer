@@ -127,16 +127,18 @@ router.post("/deletePost/:id", async (req, res) => {
 router.get("/getConnectionPosts/:userId", async (req, res) => {
   const { userId } = req.params;
   const { skip = 0, limit = 10 } = req.query;
+
   try {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).send("Invalid userId");
     }
+
     const user = await User.findById(userId).exec();
     if (!user) {
       return res.status(404).send("User not found");
     }
-    //  get random users post id, if not users has connection post
-    let postIds;
+
+    // Helper to fetch random posts
     const getRandomUserPost = async (size = 10, excludeIds = []) => {
       try {
         const users = await User.aggregate([
@@ -149,9 +151,10 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
             $sample: { size },
           },
         ]);
+
         const randomPostIds = users
           .map((user) => user.Posts[0]?._id)
-          .filter((id) => id && !excludeIds.includes(id.toString())); // avoid duplicates
+          .filter((id) => id && !excludeIds.includes(id.toString()));
 
         return randomPostIds;
       } catch (error) {
@@ -159,14 +162,19 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
         return [];
       }
     };
-    postIds = user.ConnectionsPost.map((post) => post.postId);
+
+    // Start with connection posts
+    let postIds = user.ConnectionsPost.map((post) => post.postId);
+
+    // If no connection posts, get random ones
     if (postIds.length === 0) {
       postIds = await getRandomUserPost();
       if (postIds.length === 0) {
         return res.status(200).json([]);
       }
     }
-    // If fewer than 10 posts, balance with random posts
+
+    // If not enough posts, fill with randoms
     if (postIds.length < 10) {
       const balanceNeeded = 10 - postIds.length;
       const balanceIds = await getRandomUserPost(
@@ -175,6 +183,8 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
       );
       postIds = [...postIds, ...balanceIds];
     }
+
+    // Main aggregation with sort
     const posts = await User.aggregate([
       { $unwind: "$Posts" },
       {
@@ -182,6 +192,11 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "Posts._id": {
             $in: postIds.map((id) => new mongoose.Types.ObjectId(id)),
           },
+        },
+      },
+      {
+        $sort: {
+          "Posts.Time": -1, // 🔥 Sort by latest post first
         },
       },
       {
@@ -213,12 +228,14 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
       { $skip: parseInt(skip) },
       { $limit: parseInt(limit) },
     ]);
+
     res.status(200).json(posts);
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred while fetching connection posts.");
   }
 });
+
 // get user posts
 router.post("/getUserPosts", async (req, res) => {
   const { userId, offsets } = req.body;
