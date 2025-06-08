@@ -5,78 +5,71 @@ const User = require("../Models/User");
 // GET request to fetch all notifications for a user
 router.get("/getNotifications/:userId", async (req, res) => {
   const { userId } = req.params;
-  let { page, limit } = req.query;
-
+  let { page = 1, limit = 10 } = req.query;
   page = parseInt(page);
   limit = parseInt(limit);
-
   try {
-    const user = await User.findById(userId);
-    if (user) {
-      if (user.Notifications && user.Notifications.length > 0) {
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const notifications = user.Notifications.slice(
-          startIndex,
-          startIndex + limit
-        );
-
-        // Fetch sender details
-        const notificationsWithSender = await Promise.all(
-          notifications.map(async (notification) => {
-            try {
-              const sender = await User.findById(
-                notification.NotificationSender,
-                "firstName LastName Images.profile"
-              );
-
-              return {
-                NotificationId: notification._id,
-                NotificationType: notification.NotificationType,
-                NotificationText: notification.NotificationText,
-                NotificationSender: notification.NotificationSender,
-                Time: notification.Time,
-                seen: notification.seen,
-                senderFirstName: sender?.firstName || "Unknown",
-                senderLastName: sender?.LastName || "User",
-                senderProfileImage: sender?.Images?.profile || null,
-                postId: notification.postId || null,
-              };
-            } catch (err) {
-              return {
-                NotificationId: notification._id,
-                NotificationType: notification.NotificationType,
-                NotificationText: notification.NotificationText,
-                NotificationSender: notification.NotificationSender,
-                Time: notification.Time,
-                seen: notification.seen,
-                senderFirstName: "Unknown",
-                senderLastName: "User",
-                senderProfileImage: null,
-                postId: notification.postId || null,
-              };
-            }
-          })
-        );
-
-        res.status(200).send({
-          notifications: notificationsWithSender,
-          currentPage: page,
-          totalPages: Math.ceil(user.Notifications.length / limit),
-          totalNotifications: user.Notifications.length,
-        });
-      } else {
-        res
-          .status(200)
-          .send({ notifications: [], totalPages: 0, totalNotifications: 0 });
-      }
-    } else {
-      res.status(404).send({ message: "User not found." });
+    // Only select Notifications field to reduce DB payload
+    const user = await User.findById(userId).select("Notifications");
+    if (!user) {
+      return res.status(404).send({ message: "User not found." });
     }
+    const allNotifications = user.Notifications || [];
+    if (allNotifications.length === 0) {
+      return res.status(200).send({
+        notifications: [],
+        totalPages: 0,
+        totalNotifications: 0,
+      });
+    }
+    // Sort by Time DESC (newest first)
+    const sorted = allNotifications.sort(
+      (a, b) => new Date(b.Time) - new Date(a.Time)
+    );
+    // Paginate
+    const start = (page - 1) * limit;
+    const paginated = sorted.slice(start, start + limit);
+    // Prepare unique sender IDs to avoid duplicate DB calls
+    const senderIds = [
+      ...new Set(paginated.map((n) => n.NotificationSender.toString())),
+    ];
+    // Fetch all senders in one go 💨
+    const senders = await User.find(
+      { _id: { $in: senderIds } },
+      "firstName LastName Images.profile"
+    ).lean();
+    // Map senderId to sender data for quick lookup
+    const senderMap = new Map();
+    senders.forEach((sender) => {
+      senderMap.set(sender._id.toString(), sender);
+    });
+    // Final result
+    const notificationsWithSender = paginated.map((notification) => {
+      const sender = senderMap.get(notification.NotificationSender.toString());
+      return {
+        NotificationId: notification._id,
+        NotificationType: notification.NotificationType,
+        NotificationText: notification.NotificationText,
+        NotificationSender: notification.NotificationSender,
+        Time: notification.Time,
+        seen: notification.seen,
+        senderFirstName: sender?.firstName || "Unknown",
+        senderLastName: sender?.LastName || "User",
+        senderProfileImage: sender?.Images?.profile || null,
+        postId: notification.postId || null,
+      };
+    });
+    res.status(200).send({
+      notifications: notificationsWithSender,
+      currentPage: page,
+      totalPages: Math.ceil(allNotifications.length / limit),
+      totalNotifications: allNotifications.length,
+    });
   } catch (error) {
     res.status(500).send({ message: "Server error.", error: error.message });
   }
 });
+// Get Notification length
 router.get("/getNotificationsLength/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -92,7 +85,6 @@ router.get("/getNotificationsLength/:id", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 // PATCH request to mark a notification as seen
 router.patch("/markAsSeen/:userId/:notificationId", async (req, res) => {
   const { notificationId } = req.params;
@@ -117,66 +109,6 @@ router.patch("/markAsSeen/:userId/:notificationId", async (req, res) => {
     }
   } catch (error) {
     res.status(500).send({ message: "Server error.", error: error.message });
-  }
-});
-//
-router.get("/getPostDetails/:postId", async (req, res) => {
-  const { postId } = req.params;
-
-  try {
-    // Aggregate query to find the post and the sender details
-    const postDetails = await User.aggregate([
-      {
-        $match: {
-          "Posts._id": new mongoose.Types.ObjectId(postId), // Corrected: Instantiate ObjectId using 'new'
-        },
-      },
-      {
-        $unwind: "$Posts", // Unwind the Posts array to access individual posts
-      },
-      {
-        $match: {
-          "Posts._id": new mongoose.Types.ObjectId(postId), // Corrected: Instantiate ObjectId using 'new'
-        },
-      },
-      {
-        $lookup: {
-          from: "users", // Reference the User collection to fetch sender details
-          localField: "Posts.SenderId",
-          foreignField: "_id",
-          as: "SenderDetails",
-        },
-      },
-      {
-        $unwind: "$SenderDetails", // Unwind the SenderDetails array
-      },
-      {
-        $project: {
-          "Posts._id": 1,
-          "Posts.PostText": 1,
-          "Posts.PostLink": 1,
-          "Posts.Images": 1,
-          "Posts.Time": 1,
-          "Posts.Like": 1,
-          "Posts.Comments": 1,
-          "Posts.LikedUsers": 1,
-          "SenderDetails.firstName": 1,
-          "SenderDetails.LastName": 1,
-          "SenderDetails.Images.profile": 1,
-          "SenderDetails.InstitudeName": 1,
-        },
-      },
-    ]);
-
-    if (!postDetails || postDetails.length === 0) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    res.status(200).json(postDetails[0]); // Send the post details
-  } catch (error) {
-    res.status(500).json({
-      message: "An error occurred while retrieving the post details.",
-    });
   }
 });
 module.exports = router;
