@@ -54,7 +54,6 @@ router.post("/addChallenge", async (req, res) => {
 router.post("/uploadChallenge/:id", async (req, res) => {
   const { GitRepo, LiveLink, SnapImage, ChallengeName } = req.body;
   const { id } = req.params;
-  //  console.log(GitRepo, LiveLink, SnapImage, ChallengeName );
 
   const user = await User.findById(id);
   if (user) {
@@ -83,13 +82,11 @@ router.post("/getChallenges", async (req, res) => {
     const Collection = DB1.collection("Challenges");
     const findChallengeTopic = await Collection.findOne({ ChallengeTopic });
     if (findChallengeTopic) {
-      // console.log(findChallengeTopic);
       res.send(findChallengeTopic.Challenges);
     } else {
       res.status(404).send("No challenges found for this topic");
     }
   } catch (error) {
-    console.error("Error occurred while fetching challenges:", error.message);
     res.status(500).send("An error occurred while processing your request.");
   }
 });
@@ -98,7 +95,7 @@ router.post("/getChallenges", async (req, res) => {
 router.post("/getUserChallenge/:id", async (req, res) => {
   const { id } = req.params;
   const { option } = req.body;
-  // console.log(option);
+
   const user = await User.findById(id);
   if (user) {
     let challenges;
@@ -125,13 +122,13 @@ router.post("/getUserChallenge/:id", async (req, res) => {
 router.post("/checkChallengeStatus/:id", async (req, res) => {
   const { ChallengeName } = req.body;
   const { id } = req.params;
-  // console.log(id, ChallengeName);
+
   const user = await User.findById(id);
   if (user) {
     const findChallenge = user?.Challenges.find(
       (ch) => ch.ChallengeName == ChallengeName
     );
-    // console.log(findChallenge);
+
     switch (findChallenge?.status) {
       case "pending":
         res.send("pending");
@@ -147,7 +144,6 @@ router.post("/checkChallengeStatus/:id", async (req, res) => {
 router.post("/getParticularChallenge/:id", async (req, res) => {
   const { id } = req.params;
   const { ChallengeName, ChallengeType, ChallengeLevel } = req.body;
-  // console.log(id, ChallengeName, ChallengeType, ChallengeLevel);
   const collection = DB1.collection("Challenges");
   const findTopic = await collection.findOne({ ChallengeTopic: ChallengeType });
   if (findTopic) {
@@ -176,7 +172,6 @@ router.post("/getParticularChallenge/:id", async (req, res) => {
       default:
         return res.status(400).send("Invalid challenge level");
     }
-    // console.log("cha",findChallenge);
 
     res.status(200).json({ challenge: findChallenge });
   } else {
@@ -207,7 +202,6 @@ router.get("/getAllTutorials", async (req, res) => {
       res.status(404).json({ message: "No tutorials found." });
     }
   } catch (error) {
-    console.log(err);
     res.status(504);
   }
 });
@@ -221,9 +215,7 @@ router.get("/getAllProjects", async (_, res) => {
     } else {
       res.status(404).json({ message: "No Projects found" });
     }
-  } catch (error) {
-    console.log(err);
-  }
+  } catch (error) {}
 });
 
 module.exports = router;

@@ -13,7 +13,6 @@ router.get("/getAllCourses", async (req, res) => {
     }
     return res.status(200).json({ Course: courses[0]?.courses });
   } catch (error) {
-    console.error("Error retrieving courses:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -21,7 +20,6 @@ router.get("/getAllCourses", async (req, res) => {
 // Add Course
 router.post("/addCourse", async (req, res) => {
   const { courseName, userId } = req.body;
-  console.log();
 
   try {
     // Find the user by ID
@@ -101,7 +99,6 @@ router.post("/addTech", async (req, res) => {
 
     return res.status(200).json({ Tech: user.Courses });
   } catch (error) {
-    console.error("Error adding technology:", error);
     return res.status(500).send("Server error: " + error.message);
   }
 });
@@ -131,7 +128,6 @@ router.post("/removeCourse", async (req, res) => {
 
     return res.status(200).json({ course: user.Courses });
   } catch (error) {
-    console.error("Error removing course:", error);
     return res.status(500).send("Server error: " + error.message);
   }
 });

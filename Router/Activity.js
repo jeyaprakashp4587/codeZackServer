@@ -42,21 +42,18 @@ router.post("/setActivity/:id", async (req, res) => {
       }
     }
   } catch (error) {
-    console.error("Error in /setActivity:", error.message);
     res.status(500).send("Server error: " + error.message);
   }
+  csf;
 });
 
 // Get all activity dates for a user
 router.get("/getAllActivityDates/:id", async (req, res) => {
   const { id } = req.params;
-  //  console.log(id);
-
   try {
     const user = await User.findById(id, "Activities.date");
     if (user) {
       const dates = user.Activities.map((activity) => activity.date);
-      // console.log(dates);
       res.send(dates);
     } else {
       res.status(404).send("User not found");

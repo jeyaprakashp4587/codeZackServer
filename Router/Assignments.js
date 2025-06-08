@@ -22,7 +22,6 @@ router.get("/getAssignments/:assignmentType", async (req, res) => {
       res.status(404).json({ message: "Assignment type not found" });
     }
   } catch (error) {
-    console.error("Error while fetching assignments:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -31,7 +30,6 @@ router.get("/getAssignments/:assignmentType", async (req, res) => {
 router.post("/saveAssignment/:id", async (req, res) => {
   const { id } = req.params;
   const { AssignmentType, point, level } = req.body;
-  console.log(AssignmentType, point, level);
 
   try {
     // Step 1: Ensure the Assignments array is initialized
@@ -102,7 +100,6 @@ router.post("/saveAssignment/:id", async (req, res) => {
     const finalUser = await User.findById(id, "Assignments");
     res.status(200).json({ Assignments: finalUser.Assignments });
   } catch (error) {
-    console.error("Server error while saving assignment:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -111,7 +108,6 @@ router.post("/saveAssignment/:id", async (req, res) => {
 router.get("/getUserAssignments/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    // console.log(userId);
 
     // Fetch the user by ID
     const user = await User.findById(userId).select("Assignments");
@@ -119,12 +115,9 @@ router.get("/getUserAssignments/:userId", async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    // console.log(user?.Assignments);
-
     // Respond with assignments
     res.status(200).json({ Assignments: user.Assignments });
   } catch (error) {
-    console.error("Error fetching user assignments:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

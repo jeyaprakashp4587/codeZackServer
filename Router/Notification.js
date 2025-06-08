@@ -43,9 +43,6 @@ router.get("/getNotifications/:userId", async (req, res) => {
                 postId: notification.postId || null,
               };
             } catch (err) {
-              console.error(
-                `Error processing notification ${notification._id}: ${err.message}`
-              );
               return {
                 NotificationId: notification._id,
                 NotificationType: notification.NotificationType,
@@ -77,7 +74,6 @@ router.get("/getNotifications/:userId", async (req, res) => {
       res.status(404).send({ message: "User not found." });
     }
   } catch (error) {
-    console.error(error);
     res.status(500).send({ message: "Server error.", error: error.message });
   }
 });
@@ -93,7 +89,6 @@ router.get("/getNotificationsLength/:id", async (req, res) => {
     );
     return res.status(200).json({ notiLength: unSeenNotification.length });
   } catch (error) {
-    console.error("Error fetching notifications:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -101,7 +96,7 @@ router.get("/getNotificationsLength/:id", async (req, res) => {
 // PATCH request to mark a notification as seen
 router.patch("/markAsSeen/:userId/:notificationId", async (req, res) => {
   const { notificationId } = req.params;
-  console.log(notificationId);
+
   try {
     const user = await User.findById(req.params.userId);
     if (user) {
@@ -179,7 +174,6 @@ router.get("/getPostDetails/:postId", async (req, res) => {
 
     res.status(200).json(postDetails[0]); // Send the post details
   } catch (error) {
-    console.error("Error retrieving post details:", error);
     res.status(500).json({
       message: "An error occurred while retrieving the post details.",
     });

@@ -73,7 +73,9 @@ router.post("/getMutuals", async (req, res) => {
     }
     // Extract connection IDs
     const selectedUserConnectionsId =
-      selectedUser.Connections?.map((connection) => connection.ConnectionsdId) || [];
+      selectedUser.Connections?.map(
+        (connection) => connection.ConnectionsdId
+      ) || [];
     const userConnectionsId =
       user.Connections?.map((connection) => connection.ConnectionsdId) || [];
     if (!userConnectionsId.length || !selectedUserConnectionsId.length) {
@@ -86,15 +88,14 @@ router.post("/getMutuals", async (req, res) => {
     // Take only the first 3 mutuals
     const limitedMutualIds = mutualsIds.slice(0, 3);
     // Fetch only those 3 users
-    const mutualUserData = await User.find({ _id: { $in: limitedMutualIds } })
-      .select("firstName Images.profile");
+    const mutualUserData = await User.find({
+      _id: { $in: limitedMutualIds },
+    }).select("firstName Images.profile");
     res.status(200).json({ users: mutualUserData });
   } catch (error) {
-    console.error("Error fetching mutual connections:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {
@@ -138,7 +139,6 @@ router.get("/getNetworks/:id", async (req, res) => {
 
     res.status(200).json({ users: formattedUsers, hasMore });
   } catch (error) {
-    console.error("Error fetching user networks:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

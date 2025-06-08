@@ -28,11 +28,9 @@ router.post("/splash", async (req, res) => {
         ) || [];
       return res.status(200).json({ user });
     } else {
-      console.log("User not found");
       return res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    console.error("Error querying the database:", error.message);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -77,7 +75,6 @@ router.post("/signIn", async (req, res) => {
       ) || [];
     res.json({ message: "SignIn Successful", user: findEmailUser });
   } catch (error) {
-    console.error("Server error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -191,7 +188,6 @@ router.post("/signOut/:id", async (req, res) => {
     // await client.del(`user:${user.Email}`);
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.log(error);
     return res.status(500);
   }
 });
@@ -210,13 +206,11 @@ router.post("/getUser", async (req, res) => {
       ) || [];
     res.status(200).send(user);
   }
-  // console.log("userId", userId);
 });
 // password verifications
 // send resetPass otp
 router.post("/sendResetPassOtp", async (req, res) => {
   const { email, otp } = req.body;
-  console.log(email, otp);
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -260,7 +254,6 @@ router.post("/sendResetPassOtp", async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.status(200).send({ message: "OTP sent successfully" });
   } catch (error) {
-    console.error("Error sending email:", error.message);
     res.status(500).send({ error: "Failed to send OTP" });
   }
 });
@@ -275,18 +268,15 @@ router.post("/resetNewPassword", async (req, res) => {
   try {
     // Find the user by email
     const user = await User.findOne({ Email: email });
-    // console.log(user);
+
     const hashedPassword = await bcrypt.hash(password, 10);
     if (!user) {
-      console.log("no user found");
       return res.status(404).json({ message: "User not found." });
     } else {
       user.Password = hashedPassword;
       await user.save();
       return res.status(200).json({ msg: "ok" });
     }
-  } catch (error) {
-    console.log(err);
-  }
+  } catch (error) {}
 });
 module.exports = router;
