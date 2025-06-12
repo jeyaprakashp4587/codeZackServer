@@ -18,7 +18,6 @@ const Placement = require("./Router/Placement");
 const Interview = require("./Router/Interview");
 const Assignments = require("./Router/Assignments");
 const Freelancing = require("./Router/Freelancing");
-
 const socket = require("./Socket/Socket");
 const Jobs = require("./Router/Jobs");
 const app = express();
