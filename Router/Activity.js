@@ -44,7 +44,6 @@ router.post("/setActivity/:id", async (req, res) => {
   } catch (error) {
     res.status(500).send("Server error: " + error.message);
   }
-  csf;
 });
 
 // Get all activity dates for a user
