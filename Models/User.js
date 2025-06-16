@@ -59,7 +59,7 @@ const UserSchema = new Schema({
           Points: { default: 0, type: Number },
           TechIcon: String,
           currentTopicLength: { default: 0, type: Number },
-          currentLevel: { default: "begineer", type: String },
+          TechCurrentLevel: { default: 0, type: Number },
         },
       ],
     },

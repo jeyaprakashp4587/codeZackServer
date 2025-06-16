@@ -21,15 +21,15 @@ router.post("/addCourse", async (req, res) => {
   const { courseName, userId } = req.body;
 
   try {
-    await User.updateMany(
-      {},
-      {
-        $set: {
-          "Courses.$[].Technologies.$[].currentTopic": 0,
-          "Courses.$[].Technologies.$[].currentLevel": "begineer",
-        },
-      }
-    );
+    // await User.updateMany(
+    //   {},
+    //   {
+    //     $set: {
+    //       "Courses.$[].Technologies.$[].currentTopicLength": 0,
+    //       "Courses.$[].Technologies.$[].TechCurrentLevel": 0,
+    //     },
+    //   }
+    // );
     // Find the user by ID
     const existsCourse = await User.findOne({
       _id: userId,
@@ -166,18 +166,50 @@ router.post("/setTopicLength", async (req, res) => {
       {
         $set: {
           "Courses.$[course].Technologies.$[tech].currentTopicLength":
-            Topiclength,
+            Topiclength + 1,
         },
       },
       {
-        arrayFilters: [{ "tech.TechName": TechName }],
+        arrayFilters: [
+          { "course.Technologies": { $exists: true } }, // filter for 'course'
+          { "tech.TechName": TechName }, // filter for 'tech'
+        ],
         new: true,
       }
     );
     if (!result) {
       return res.status(404).json({ error: "User or tech not found" });
     }
-    res.status(200).json({ message: "Topic length updated", data: result });
+    res.status(200).json({ message: "Topic length updated" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.post("/setTopicLevel", async (req, res) => {
+  const { TopicLevel, userId, TechName } = req.body;
+  try {
+    const result = await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $set: {
+          "Courses.$[course].Technologies.$[tech].TechCurrentLevel":
+            TopicLevel + 1,
+          "Courses.$[course].Technologies.$[tech].currentTopicLength": 0,
+        },
+      },
+      {
+        arrayFilters: [
+          { "course.Technologies": { $exists: true } },
+          { "tech.TechName": TechName },
+        ],
+        new: true,
+      }
+    );
+    if (!result) {
+      return res.status(404).json({ error: "User or tech not found" });
+    }
+    res.status(200).json({ message: "Topic level updated" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal server error" });
