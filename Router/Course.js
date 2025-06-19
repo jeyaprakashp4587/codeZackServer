@@ -193,8 +193,7 @@ router.post("/setTopicLevel", async (req, res) => {
       { _id: userId },
       {
         $set: {
-          "Courses.$[course].Technologies.$[tech].TechCurrentLevel":
-            TopicLevel + 1,
+          "Courses.$[course].Technologies.$[tech].TechCurrentLevel": TopicLevel,
           "Courses.$[course].Technologies.$[tech].currentTopicLength": 0,
         },
       },
