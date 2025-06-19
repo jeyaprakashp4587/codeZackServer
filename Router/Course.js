@@ -21,15 +21,15 @@ router.post("/addCourse", async (req, res) => {
   const { courseName, userId } = req.body;
 
   try {
-    // await User.updateMany(
-    //   {},
-    //   {
-    //     $set: {
-    //       "Courses.$[].Technologies.$[].currentTopicLength": 0,
-    //       "Courses.$[].Technologies.$[].TechCurrentLevel": 0,
-    //     },
-    //   }
-    // );
+    await User.updateMany(
+      {},
+      {
+        $set: {
+          "Courses.$[].Technologies.$[].currentTopicLength": 0,
+          "Courses.$[].Technologies.$[].TechCurrentLevel": 0,
+        },
+      }
+    );
     // Find the user by ID
     const existsCourse = await User.findOne({
       _id: userId,
