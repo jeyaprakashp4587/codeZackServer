@@ -60,6 +60,7 @@ const UserSchema = new Schema({
           TechIcon: String,
           currentTopicLength: { default: 0, type: Number },
           TechCurrentLevel: { default: 0, type: Number },
+          TechStatus: { type: String, default: "pending" },
         },
       ],
     },

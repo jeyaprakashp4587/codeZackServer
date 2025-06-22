@@ -21,15 +21,14 @@ router.post("/addCourse", async (req, res) => {
   const { courseName, userId } = req.body;
 
   try {
-    await User.updateMany(
-      {},
-      {
-        $set: {
-          "Courses.$[].Technologies.$[].currentTopicLength": 0,
-          "Courses.$[].Technologies.$[].TechCurrentLevel": 0,
-        },
-      }
-    );
+    // await User.updateMany(
+    //   {},
+    //   {
+    //     $unset: {
+    //       "Courses.$[].Technologies.$[].currentLevel": "",
+    //     },
+    //   }
+    // );
     // Find the user by ID
     const existsCourse = await User.findOne({
       _id: userId,
@@ -140,6 +139,8 @@ router.post("/removeCourse", async (req, res) => {
 // get Tech Course Data
 router.get("/getTechCourse", async (req, res) => {
   const { TechName, level } = req.query;
+  console.log(level);
+
   try {
     const collection = DB1.collection("CourseData");
     const CourseData = await collection.findOne(
@@ -149,8 +150,6 @@ router.get("/getTechCourse", async (req, res) => {
     if (!CourseData) {
       return res.status(404).json({ error: "Course not found" });
     }
-    console.log(CourseData);
-
     res.status(200).json({ courseData: CourseData.courseData[level] });
   } catch (error) {
     console.error("Error fetching course level:", error);
@@ -160,13 +159,15 @@ router.get("/getTechCourse", async (req, res) => {
 // send the topics length to server for save
 router.post("/setTopicLength", async (req, res) => {
   const { Topiclength, userId, TechName } = req.body;
+  console.log(Topiclength, userId, TechName);
+
   try {
     const result = await User.findOneAndUpdate(
       { _id: userId },
       {
         $set: {
           "Courses.$[course].Technologies.$[tech].currentTopicLength":
-            Topiclength + 1,
+            Topiclength,
         },
       },
       {
@@ -187,14 +188,20 @@ router.post("/setTopicLength", async (req, res) => {
   }
 });
 router.post("/setTopicLevel", async (req, res) => {
-  const { TopicLevel, userId, TechName } = req.body;
+  const { TopicLevel, userId, TechName, TopicLength, TechStatus } = req.body;
+  console.log(TopicLevel, userId, TechName);
+
   try {
     const result = await User.findOneAndUpdate(
       { _id: userId },
       {
         $set: {
           "Courses.$[course].Technologies.$[tech].TechCurrentLevel": TopicLevel,
-          "Courses.$[course].Technologies.$[tech].currentTopicLength": 0,
+          "Courses.$[course].Technologies.$[tech].currentTopicLength":
+            TopicLength,
+          "Courses.$[course].Technologies.$[tech].TechStatus": TechStatus
+            ? "completed"
+            : "pending",
         },
       },
       {
