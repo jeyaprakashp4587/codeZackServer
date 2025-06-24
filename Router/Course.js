@@ -139,7 +139,7 @@ router.post("/removeCourse", async (req, res) => {
 // get Tech Course Data
 router.get("/getTechCourse", async (req, res) => {
   const { TechName, level } = req.query;
-  console.log(level);
+  console.log(TechName);
 
   try {
     const collection = DB1.collection("CourseData");
@@ -192,7 +192,7 @@ router.post("/setTopicLevel", async (req, res) => {
   console.log(TopicLevel, userId, TechName);
 
   try {
-  // dmfm
+    // dmfm
     const result = await User.findOneAndUpdate(
       { _id: userId },
       {
