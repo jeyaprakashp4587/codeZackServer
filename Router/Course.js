@@ -139,8 +139,7 @@ router.post("/removeCourse", async (req, res) => {
 // get Tech Course Data
 router.get("/getTechCourse", async (req, res) => {
   const { TechName, level } = req.query;
-  console.log(TechName);
-
+  console.log(TechName, level);
   try {
     const collection = DB1.collection("CourseData");
     const CourseData = await collection.findOne(
