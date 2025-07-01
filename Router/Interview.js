@@ -102,22 +102,35 @@ router.post("/setQuestionLength", async (req, res) => {
 // submit task and add week
 router.post("/submitTask", async (req, res) => {
   const { userId, companyName } = req.body;
+
   try {
-    const user = await User.findById(userId);
-    const findCompany = user.InterView.find(
+    // Try to find the matching interview entry
+    const user = await User.findOne({
+      _id: userId,
+      "InterView.companyName": companyName,
+    });
+    if (!user) {
+      return res.status(404).json({ message: "User or company not found" });
+    }
+    // Update the matched InterView subdocument atomically
+    await User.updateOne(
+      { _id: userId, "InterView.companyName": companyName },
+      {
+        $inc: { "InterView.$.currentWeek": 1 },
+        $set: { "InterView.$.currentQuestionLength": 0 },
+      }
+    );
+    // Fetch the updated document (if needed)
+    const updatedUser = await User.findById(userId);
+    const updatedCompany = updatedUser.InterView.find(
       (comp) => comp.companyName === companyName
     );
-    if (findCompany) {
-      findCompany.currentWeek += 1;
-      await user.save();
-      res.json({
-        week: findCompany.currentWeek,
-        userInterView: user.InterView,
-      }); // Use res.json instead of res.send
-    } else {
-      res.sendStatus(404); // Send 404 if the company is not found
-    }
+    res.json({
+      week: updatedCompany?.currentWeek || 0,
+      userInterView: updatedUser.InterView,
+    });
   } catch (error) {
+    console.error("SubmitTask Error:", error);
     res.status(500).json({ message: "Error updating week count", error });
   }
 });
