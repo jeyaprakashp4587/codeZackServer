@@ -34,6 +34,7 @@ router.post("/splash", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 // SignIn route
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
@@ -78,6 +79,22 @@ router.post("/signIn", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+// verify email
+router.post("/verifyEmail", async (req, res) => {
+  const { Email } = req.body;
+
+  try {
+    const exists = await User.exists({ Email: Email.toLowerCase() });
+    if (exists) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Error checking email:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 // SignUp route
 router.post("/signUp", async (req, res) => {
@@ -109,6 +126,7 @@ router.post("/signUp", async (req, res) => {
     institution: Institute_Name,
     state: State,
     city: District,
+    image: image,
   } = req.body;
 
   // Convert the email to lowercase
@@ -117,7 +135,7 @@ router.post("/signUp", async (req, res) => {
   const hashedPassword = await bcrypt.hash(Password, 10);
   const coverImg = coverImages[Math.floor(Math.random() * coverImages.length)];
   const profileImg =
-    lowerGender === "male"
+    image ?? lowerGender === "male"
       ? boyProfileImages[Math.floor(Math.random() * boyProfileImages.length)]
       : girlProfileImages[Math.floor(Math.random() * girlProfileImages.length)];
   // Check if the email already exists
