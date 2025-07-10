@@ -128,21 +128,26 @@ router.post("/signUp", async (req, res) => {
     city: District,
     image: image,
   } = req.body;
+  console.log("image", image);
 
   // Convert the email to lowercase
-  const lowerCaseEmail = Email.toLowerCase().trim();
-  const lowerGender = Gender.toLowerCase().trim();
-  const hashedPassword = await bcrypt.hash(Password, 10);
-  const coverImg = coverImages[Math.floor(Math.random() * coverImages.length)];
-  const profileImg =
-    image ?? lowerGender === "male"
-      ? boyProfileImages[Math.floor(Math.random() * boyProfileImages.length)]
-      : girlProfileImages[Math.floor(Math.random() * girlProfileImages.length)];
-  // Check if the email already exists
-  const existMail = await User.findOne({ Email: Email });
-  if (existMail) {
-    return res.send("Email has Already Been Taken");
-  } else {
+  try {
+    const lowerCaseEmail = Email.toLowerCase().trim();
+    const lowerGender = Gender.toLowerCase().trim();
+    const hashedPassword = await bcrypt.hash(Password, 10);
+    const coverImg =
+      coverImages[Math.floor(Math.random() * coverImages.length)];
+    let profileImg = image?.trim();
+    if (!profileImg) {
+      profileImg =
+        lowerGender === "male"
+          ? boyProfileImages[
+              Math.floor(Math.random() * boyProfileImages.length)
+            ]
+          : girlProfileImages[
+              Math.floor(Math.random() * girlProfileImages.length)
+            ];
+    }
     const user = await User({
       firstName: First_Name,
       LastName: Last_Name,
@@ -167,7 +172,6 @@ router.post("/signUp", async (req, res) => {
         pass: process.env.EMAIL_PASS,
       },
     });
-
     // Compose email
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -196,7 +200,7 @@ router.post("/signUp", async (req, res) => {
     await transporter.sendMail(mailOptions);
     //
     res.json({ message: "SignUp Sucessfully", user: user });
-  }
+  } catch (error) {}
 });
 // sign out
 router.post("/signOut/:id", async (req, res) => {
