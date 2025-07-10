@@ -128,8 +128,6 @@ router.post("/signUp", async (req, res) => {
     city: District,
     image: image,
   } = req.body;
-  console.log("image", image);
-
   // Convert the email to lowercase
   try {
     const lowerCaseEmail = Email.toLowerCase().trim();

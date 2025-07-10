@@ -73,7 +73,7 @@ router.post("/addTech", async (req, res) => {
   const { TechName, CourseName, TechIcon, TechWeb, UserId } = req.body;
   try {
     // 1️⃣ Check if the tech already exists
-    const exists = await User.findOne({
+    const exists = await User.exists({
       _id: UserId,
       "Courses.Course_Name": CourseName,
       "Courses.Technologies.TechName": TechName,
@@ -158,8 +158,6 @@ router.get("/getTechCourse", async (req, res) => {
 // send the topics length to server for save
 router.post("/setTopicLength", async (req, res) => {
   const { Topiclength, userId, TechName } = req.body;
-  console.log(Topiclength, userId, TechName);
-
   try {
     const result = await User.findOneAndUpdate(
       { _id: userId },
@@ -180,7 +178,19 @@ router.post("/setTopicLength", async (req, res) => {
     if (!result) {
       return res.status(404).json({ error: "User or tech not found" });
     }
-    res.status(200).json({ message: "Topic length updated" });
+    let updatedTech = null;
+    for (const course of result.Courses) {
+      const tech = course.Technologies.find((t) => t.TechName === TechName);
+      if (tech) {
+        updatedTech = tech;
+        break;
+      }
+    }
+
+    if (!updatedTech)
+      return res.status(404).json({ error: "Updated tech not found" });
+
+    res.status(200).json({ updatedTech });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -188,8 +198,6 @@ router.post("/setTopicLength", async (req, res) => {
 });
 router.post("/setTopicLevel", async (req, res) => {
   const { TopicLevel, userId, TechName, TopicLength, TechStatus } = req.body;
-  console.log(TopicLevel, userId, TechName);
-
   try {
     // dmfm
     const result = await User.findOneAndUpdate(
@@ -215,7 +223,19 @@ router.post("/setTopicLevel", async (req, res) => {
     if (!result) {
       return res.status(404).json({ error: "User or tech not found" });
     }
-    res.status(200).json({ message: "Topic level updated" });
+    let updatedTech = null;
+    for (const course of result.Courses) {
+      const tech = course.Technologies.find((t) => t.TechName === TechName);
+      if (tech) {
+        updatedTech = tech;
+        break;
+      }
+    }
+
+    if (!updatedTech)
+      return res.status(404).json({ error: "Updated tech not found" });
+
+    res.status(200).json({ updatedTech });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal server error" });
