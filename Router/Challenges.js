@@ -55,23 +55,27 @@ router.post("/uploadChallenge/:id", async (req, res) => {
   const { GitRepo, LiveLink, SnapImage, ChallengeName } = req.body;
   const { id } = req.params;
 
-  const user = await User.findById(id);
-  if (user) {
-    const findChallenge = user.Challenges.find(
-      (ch) => ch.ChallengeName === ChallengeName
+  try {
+    const result = await User.updateOne(
+      { _id: id, "Challenges.ChallengeName": ChallengeName },
+      {
+        $set: {
+          "Challenges.$.RepoLink": GitRepo,
+          "Challenges.$.SnapImage": SnapImage,
+          "Challenges.$.LiveLink": LiveLink,
+          "Challenges.$.status": "completed",
+        },
+      }
     );
-    if (findChallenge) {
-      findChallenge.RepoLink = GitRepo;
-      findChallenge.SnapImage = SnapImage;
-      findChallenge.LiveLink = LiveLink;
-      findChallenge.status = "completed";
-      await user.save();
-      res.send("completed");
-    } else {
-      res.status(404).send("Challenge not found");
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send("User or Challenge not found");
     }
-  } else {
-    res.status(404).send("User not found");
+
+    res.send("completed");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
   }
 });
 
@@ -206,16 +210,27 @@ router.get("/getAllTutorials", async (req, res) => {
   }
 });
 // get all premium projects
-router.get("/getAllProjects", async (_, res) => {
+router.get("/getAllProjects", async (req, res) => {
+  const page = parseInt(req.query.page || "0"); // default to 0
+  const limit = parseInt(req.query.limit || "3"); // default to 3
+  const skip = page * limit;
+
   try {
     const projectsCollection = DB1.collection("Projects");
-    const cursor = await projectsCollection.find({}).toArray();
-    if (cursor.length > 0) {
-      res.status(200).json({ projects: cursor });
+
+    // Assuming only one document that holds the array
+    const doc = await projectsCollection.findOne({});
+
+    if (doc && Array.isArray(doc.Projects)) {
+      const slicedData = doc.Projects.slice(skip, limit);
+      res.status(200).json({ projects: slicedData });
     } else {
       res.status(404).json({ message: "No Projects found" });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 module.exports = router;
