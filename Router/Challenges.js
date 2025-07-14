@@ -12,6 +12,7 @@ router.post("/addChallenge", async (req, res) => {
     ChallengeImage,
     ChallengeLevel,
   } = req.body;
+
   // Determine ChallengeType
   let ChType;
   switch (ChallengeType) {
@@ -26,52 +27,91 @@ router.post("/addChallenge", async (req, res) => {
     default:
       ChType = null;
   }
-  const user = await User.findById(userId);
-  if (user) {
-    // Check if challenge already exists for user
-    const existsChallenge = user.Challenges.some(
-      (ch) => ch.ChallengeName === ChallengeName
+
+  if (!ChType) return res.status(400).send("Invalid ChallengeType");
+
+  try {
+    // Add challenge only if not already present
+    const result = await User.findOneAndUpdate(
+      {
+        _id: userId,
+        "Challenges.ChallengeName": { $ne: ChallengeName },
+      },
+      {
+        $push: {
+          Challenges: {
+            ChallengeName,
+            status: "pending",
+            ChallengeType: ChType,
+            ChallengeImage,
+            ChallengeLevel,
+          },
+        },
+      },
+      { new: true }
     );
-    if (!existsChallenge) {
-      user.Challenges.push({
-        ChallengeName,
-        status: "pending",
-        ChallengeType: ChType,
-        ChallengeImage,
-        ChallengeLevel,
-      });
-      await user.save();
-      res.send("Challenge added successfully");
+
+    if (result) {
+      res.status(200).send("Challenge added successfully");
     } else {
-      res.status(400).send("Challenge already exists");
+      // Either user not found or challenge already exists
+      const userExists = await User.exists({ _id: userId });
+      if (!userExists) {
+        res.status(404).send("User not found");
+      } else {
+        res.status(400).send("Challenge already exists");
+      }
     }
-  } else {
-    res.status(404).send("User not found");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
   }
 });
-
 // Upload a completed challenge
 router.post("/uploadChallenge/:id", async (req, res) => {
-  const { GitRepo, LiveLink, SnapImage, ChallengeName } = req.body;
+  const { GitRepo, LiveLink, SnapImage, ChallengeName, level } = req.body;
   const { id } = req.params;
 
   try {
-    const result = await User.updateOne(
-      { _id: id, "Challenges.ChallengeName": ChallengeName },
-      {
-        $set: {
-          "Challenges.$.RepoLink": GitRepo,
-          "Challenges.$.SnapImage": SnapImage,
-          "Challenges.$.LiveLink": LiveLink,
-          "Challenges.$.status": "completed",
-        },
-      }
-    );
+    let point;
+    const lowerLevel = level.toLowerCase();
+    switch (lowerLevel) {
+      case "newbie":
+        point = 10;
+        break;
+      case "junior":
+        point = 20;
+        break;
 
-    if (result.matchedCount === 0) {
-      return res.status(404).send("User or Challenge not found");
+      case "expert":
+        point = 30;
+        break;
+
+      case "legend":
+        point = 40;
+        break;
+
+      default:
+        point = 0;
+        break;
     }
-
+    if (point) {
+      const result = await User.updateOne(
+        { _id: id, "Challenges.ChallengeName": ChallengeName },
+        {
+          $set: {
+            "Challenges.$.RepoLink": GitRepo,
+            "Challenges.$.SnapImage": SnapImage,
+            "Challenges.$.LiveLink": LiveLink,
+            "Challenges.$.status": "completed",
+            ChallengesPoint: point,
+          },
+        }
+      );
+      if (result.modifiedCount === 0) {
+        return res.status(404).send("User or Challenge not found");
+      }
+    }
     res.send("completed");
   } catch (error) {
     console.error(error);
@@ -148,6 +188,8 @@ router.post("/checkChallengeStatus/:id", async (req, res) => {
 router.post("/getParticularChallenge/:id", async (req, res) => {
   const { id } = req.params;
   const { ChallengeName, ChallengeType, ChallengeLevel } = req.body;
+  console.log(ChallengeName, ChallengeType, ChallengeLevel);
+
   const collection = DB1.collection("Challenges");
   const findTopic = await collection.findOne({ ChallengeTopic: ChallengeType });
   if (findTopic) {

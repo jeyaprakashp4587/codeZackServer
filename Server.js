@@ -18,6 +18,7 @@ const Placement = require("./Router/Placement");
 const Interview = require("./Router/Interview");
 const Assignments = require("./Router/Assignments");
 const Freelancing = require("./Router/Freelancing");
+const LeaderBoard = require("./Router/LeaderBoard");
 const socket = require("./Socket/Socket");
 const Jobs = require("./Router/Jobs");
 const app = express();
@@ -53,7 +54,7 @@ app.use("/Assignment", Assignments);
 app.use("/InterView", Interview);
 app.use("/Jobs", Jobs);
 app.use("/Freelancing", Freelancing);
-
+app.use("/LeaderBoard", LeaderBoard);
 // Port listening for
 const port = 8080;
 server.listen(port, () => {

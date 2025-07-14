@@ -10,6 +10,7 @@ router.post("/splash", async (req, res) => {
   if (!Email) {
     return res.status(400).json({ error: "Email is required" });
   }
+
   try {
     const user = await User.findOne(
       { Email },
@@ -22,10 +23,12 @@ router.post("/splash", async (req, res) => {
       }
     ).lean();
     if (user) {
-      user.Challenges =
-        user.Challenges?.filter(
-          (challenge) => challenge.status === "completed"
-        ) || [];
+      if (user.Challenges.length > 0) {
+        user.Challenges =
+          user.Challenges?.filter(
+            (challenge) => challenge.status === "completed"
+          ) || [];
+      }
       return res.status(200).json({ user });
     } else {
       return res.status(404).json({ error: "User not found" });

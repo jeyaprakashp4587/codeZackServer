@@ -89,10 +89,10 @@ const UserSchema = new Schema({
       NotificationType: String,
       NotificationText: String,
       Time: String,
-      NotificationSender: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Reference to the User model
-      senderFirstName: String, // Store the first name when notification is created
-      senderLastName: String, // Store the last name when notification is created
-      senderProfileImage: String, // Store the profile image when notification is created
+      NotificationSender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      senderFirstName: String,
+      senderLastName: String,
+      senderProfileImage: String,
       seen: Boolean,
       postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
     },
@@ -111,9 +111,9 @@ const UserSchema = new Schema({
     },
   ],
   FcmId: String,
-  onlineStatus: {
-    type: Boolean,
-    default: false,
+  ChallengesPoint: {
+    type: Number,
+    default: 0,
   },
 });
 
