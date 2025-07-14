@@ -96,6 +96,9 @@ router.post("/uploadChallenge/:id", async (req, res) => {
         break;
     }
     if (point) {
+      console.log(point);
+
+      // return;
       const result = await User.updateOne(
         { _id: id, "Challenges.ChallengeName": ChallengeName },
         {
@@ -104,8 +107,8 @@ router.post("/uploadChallenge/:id", async (req, res) => {
             "Challenges.$.SnapImage": SnapImage,
             "Challenges.$.LiveLink": LiveLink,
             "Challenges.$.status": "completed",
-            ChallengesPoint: point,
           },
+          $inc: { ChallengesPoint: point },
         }
       );
       if (result.modifiedCount === 0) {
@@ -137,93 +140,89 @@ router.post("/getChallenges", async (req, res) => {
 
 // Get challenges for a user based on status
 router.post("/getUserChallenge/:id", async (req, res) => {
-  const { id } = req.params;
-  const { option } = req.body;
+  try {
+    const { id } = req.params;
+    const { option } = req.body;
 
-  const user = await User.findById(id);
-  if (user) {
-    let challenges;
-    switch (option) {
-      case "All":
-        challenges = user.Challenges;
-        break;
-      case "Complete":
-        challenges = user.Challenges.filter((ch) => ch.status === "completed");
-        break;
-      case "Pending":
-        challenges = user.Challenges.filter((ch) => ch.status === "pending");
-        break;
-      default:
-        return res.status(400).send("Invalid option");
+    if (!["All", "Complete", "Pending"].includes(option)) {
+      return res.status(400).send("Invalid option");
     }
-    res.send(challenges);
-  } else {
-    res.status(404).send("User not found");
+    // Only fetch the Challenges field (not the whole user)
+    const user = await User.findById(id).select("Challenges");
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    let challenges = user.Challenges || [];
+    if (option === "Complete") {
+      challenges = challenges.filter((ch) => ch.status === "completed");
+    } else if (option === "Pending") {
+      challenges = challenges.filter((ch) => ch.status === "pending");
+    }
+    return res.status(200).json(challenges);
+  } catch (error) {
+    console.error("Error in /getUserChallenge:", error);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
-// Check the status of a specific challenge
-router.post("/checkChallengeStatus/:id", async (req, res) => {
-  const { ChallengeName } = req.body;
-  const { id } = req.params;
+router.post("/getChallengeAndStatus/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ChallengeName, ChallengeType, ChallengeLevel } = req.body;
 
-  const user = await User.findById(id);
-  if (user) {
-    const findChallenge = user?.Challenges.find(
-      (ch) => ch.ChallengeName == ChallengeName
+    if (!ChallengeName || !ChallengeType || !ChallengeLevel) {
+      return res.status(400).send("Missing required fields");
+    }
+
+    // ✅ Get user status
+    const user = await User.findById(id);
+    let challengeStatus = null;
+
+    if (user) {
+      const findChallenge = user?.Challenges.find(
+        (ch) => ch.ChallengeName === ChallengeName
+      );
+      if (findChallenge) {
+        challengeStatus = findChallenge.status; // 'pending' or 'completed'
+      }
+    }
+
+    // ✅ Get the actual challenge details
+    const collection = DB1.collection("Challenges");
+    const topicDoc = await collection.findOne({
+      ChallengeTopic: ChallengeType,
+    });
+
+    if (!topicDoc) {
+      return res.status(404).send("Challenge topic not found");
+    }
+
+    const levelKey = ChallengeLevel.toLowerCase() + "Level";
+    const challengeArray = topicDoc?.Challenges?.[levelKey];
+
+    if (!Array.isArray(challengeArray)) {
+      return res.status(400).send("Invalid challenge level");
+    }
+
+    const foundChallenge = challengeArray.find(
+      (ch) => ch.title === ChallengeName
     );
 
-    switch (findChallenge?.status) {
-      case "pending":
-        res.send("pending");
-        break;
-      case "completed":
-        res.send("completed");
-        break;
+    if (!foundChallenge) {
+      return res.status(404).send("Challenge not found");
     }
+
+    // ✅ Send both challenge data & user status
+    return res.status(200).json({
+      challenge: foundChallenge,
+      status: challengeStatus, // can be null, 'pending', or 'completed'
+    });
+  } catch (error) {
+    console.error("Error in getChallengeAndStatus:", error);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
-// Get a particular challenge by its name, type, and level
-router.post("/getParticularChallenge/:id", async (req, res) => {
-  const { id } = req.params;
-  const { ChallengeName, ChallengeType, ChallengeLevel } = req.body;
-  console.log(ChallengeName, ChallengeType, ChallengeLevel);
-
-  const collection = DB1.collection("Challenges");
-  const findTopic = await collection.findOne({ ChallengeTopic: ChallengeType });
-  if (findTopic) {
-    let findChallenge;
-    switch (ChallengeLevel.toLowerCase()) {
-      case "newbie":
-        findChallenge = findTopic?.Challenges.newbieLevel.find(
-          (ch) => ch.title == ChallengeName
-        );
-        break;
-      case "junior":
-        findChallenge = findTopic?.Challenges.juniorLevel.find(
-          (ch) => ch.title == ChallengeName
-        );
-        break;
-      case "expert":
-        findChallenge = findTopic?.Challenges.expertLevel.find(
-          (ch) => ch.title == ChallengeName
-        );
-        break;
-      case "legend":
-        findChallenge = findTopic?.Challenges.legendLevel.find(
-          (ch) => ch.title == ChallengeName
-        );
-        break;
-      default:
-        return res.status(400).send("Invalid challenge level");
-    }
-
-    res.status(200).json({ challenge: findChallenge });
-  } else {
-    res.status(404).send("Challenge topic not found");
-  }
-});
 //
 router.get("/getCompletedChallenge/:id/:challengeName", async (req, res) => {
   const { id, challengeName } = req.params;

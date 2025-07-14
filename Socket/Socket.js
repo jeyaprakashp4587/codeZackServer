@@ -15,7 +15,7 @@ const initializeSocket = (server) => {
 
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
-  console.log(userId);
+    console.log(userId);
     if (!userId || userId == undefined) {
       console.warn("No userId provided in socket connection.");
       return;
@@ -60,7 +60,7 @@ const initializeSocket = (server) => {
             Time,
           });
 
-          await Receiver.save();	
+          await Receiver.save();
 
           // Socket
           if (Receiver.SocketId) {
@@ -130,7 +130,7 @@ const initializeSocket = (server) => {
         }
 
         if (fcmTokens.length > 0) {
-          await admin.messaging().sendMulticast({
+          await admin.messaging().sendEachForMulticast({
             tokens: fcmTokens,
             notification: {
               title: "New Post!",
@@ -158,7 +158,7 @@ const initializeSocket = (server) => {
       async ({ receivingUserId, postId }, callback) => {
         const time = moment().format("YYYY-MM-DDTHH:mm:ss");
         try {
-        console.log( receivingUserId, postId );
+          console.log(receivingUserId, postId);
           const sender = await User.findById(userId);
           const receiver = await User.findById(receivingUserId);
           if (!sender || !receiver) throw new Error("User not found");
@@ -206,11 +206,11 @@ const initializeSocket = (server) => {
     // === LIKE NOTIFICATION
     socket.on("LikeNotiToUploader", async ({ Time, postId, senderId }) => {
       try {
-         console.log( Time, postId, senderId);
+        console.log(Time, postId, senderId);
         const liker = await User.findById(userId);
         const postOwner = await User.findById(senderId);
         if (!liker || !postOwner) return;
-         
+
         postOwner.Notifications.push({
           NotificationSender: liker._id,
           NotificationType: "post",
@@ -254,7 +254,7 @@ const initializeSocket = (server) => {
     // === COMMENT NOTIFICATION
     socket.on("CommentNotiToUploader", async ({ Time, postId, senderId }) => {
       try {
-      console.log( Time, postId, senderId);
+        console.log(Time, postId, senderId);
         const commenter = await User.findById(userId);
         const postOwner = await User.findById(senderId);
         if (!commenter || !postOwner) return;
@@ -283,9 +283,9 @@ const initializeSocket = (server) => {
               body: `${commenter.firstName} ${commenter.LastName} commented on your post`,
               imageUrl: commenter.Images?.profile,
             },
-             android: {
-                notification: { icon: "https://i.ibb.co/j6qShGt/CC.png" },
-              },
+            android: {
+              notification: { icon: "https://i.ibb.co/j6qShGt/CC.png" },
+            },
             data: {
               type: "comment",
               postId,
