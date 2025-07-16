@@ -10,7 +10,6 @@ router.post("/splash", async (req, res) => {
   if (!Email) {
     return res.status(400).json({ error: "Email is required" });
   }
-
   try {
     const user = await User.findOne(
       { Email },

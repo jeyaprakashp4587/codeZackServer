@@ -7,27 +7,27 @@ router.get("/getLeaderBoard", async (req, res) => {
     console.log("check");
 
     const topUser = await User.aggregate([
-      {
-        $match: {
-          Challenges: { $exists: true, $not: { $size: 0 } },
-        },
-      },
-      {
-        $addFields: {
-          CompletedChallenges: {
-            $filter: {
-              input: "$Challenges",
-              as: "challenge",
-              cond: { $eq: ["$$challenge.status", "completed"] },
-            },
-          },
-        },
-      },
-      {
-        $match: {
-          "CompletedChallenges.0": { $exists: true },
-        },
-      },
+      // {
+      //   $match: {
+      //     Challenges: { $exists: false, $not: { $size: 0 } },
+      //   },
+      // },
+      // {
+      //   $addFields: {
+      //     CompletedChallenges: {
+      //       $filter: {
+      //         input: "$Challenges",
+      //         as: "challenge",
+      //         cond: { $eq: ["$$challenge.status", "completed"] },
+      //       },
+      //     },
+      //   },
+      // },
+      // {
+      //   $match: {
+      //     "CompletedChallenges.0": { $exists: false },
+      //   },
+      // },
       {
         $sort: { ChallengesPoint: -1 },
       },
@@ -43,8 +43,9 @@ router.get("/getLeaderBoard", async (req, res) => {
         },
       },
     ]);
-
-    console.log("top user", topUser);
+    if (topUser) {
+      res.status(200).json({ users: topUser });
+    }
   } catch (error) {
     console.error(error);
   }
