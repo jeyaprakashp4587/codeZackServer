@@ -40,6 +40,7 @@ router.get("/getLeaderBoard", async (req, res) => {
           LastName: 1,
           ChallengesPoint: 1,
           profile: "$Images.profile",
+          _id: 1,
         },
       },
     ]);
