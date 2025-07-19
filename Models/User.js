@@ -115,6 +115,10 @@ const UserSchema = new Schema({
     type: Number,
     default: 0,
   },
+  IsLeaderBoardWinner: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = DB2.model("user", UserSchema);

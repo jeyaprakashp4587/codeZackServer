@@ -22,8 +22,10 @@ const LeaderBoard = require("./Router/LeaderBoard");
 const socket = require("./Socket/Socket");
 const Jobs = require("./Router/Jobs");
 const app = express();
+const compression = require("compression");
 const server = http.createServer(app);
 app.use(bodyParser.json());
+app.use(compression());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
 // init
