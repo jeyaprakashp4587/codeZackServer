@@ -6,7 +6,6 @@ cron.schedule("59 23 * * *", async () => {
   if (today === lastDay) {
     try {
       await User.updateMany({}, { $set: { ChallengesPoint: 0 } });
-      console.log("Monthly reset done on:", now.format("YYYY-MM-DD"));
     } catch (err) {
       console.error("Error resetting points:", err);
     }
