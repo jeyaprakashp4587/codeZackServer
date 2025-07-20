@@ -368,6 +368,8 @@ router.post("/unlikePost/:postId", async (req, res) => {
 router.get("/getLikedUsers/:postId", async (req, res) => {
   try {
     const postId = req.params.postId;
+    // console.log("", postId);
+
     const { skip = 0, limit = 10 } = req.query; // Defaults to skip 0 and limit 10
     // console.log(skip, limit);
     // Find the user who owns the post

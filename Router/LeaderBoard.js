@@ -4,8 +4,6 @@ const User = require("../Models/User");
 
 router.get("/getLeaderBoard", async (req, res) => {
   try {
-    console.log("check");
-
     const topUser = await User.aggregate([
       // {
       //   $match: {

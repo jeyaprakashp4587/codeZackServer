@@ -15,20 +15,17 @@ const initializeSocket = (server) => {
 
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
-    console.log(userId);
+    // console.log(userId);
     if (!userId || userId == undefined) {
       console.warn("No userId provided in socket connection.");
       return;
     }
 
     try {
-      const updatedUser = await User.findByIdAndUpdate(
+      await User.findByIdAndUpdate(
         userId,
         { SocketId: socket.id },
         { new: true }
-      );
-      console.log(
-        `User connected: ${updatedUser?.firstName} with socket ID: ${socket.id}`
       );
     } catch (error) {
       console.error("Error updating SocketId:", error.message);
@@ -303,7 +300,6 @@ const initializeSocket = (server) => {
     socket.on("disconnect", async () => {
       try {
         await User.findByIdAndUpdate(userId, { $unset: { SocketId: "" } });
-        console.log(`User ${userId} disconnected`);
       } catch (err) {
         console.error("Error during disconnect:", err.message);
       }
