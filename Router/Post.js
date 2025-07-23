@@ -304,7 +304,6 @@ router.post("/likePost/:postId", async (req, res) => {
         .status(400)
         .json({ message: "User has already liked this post" });
     }
-    console.log();
 
     // Increment the Like count and add the user to the LikedUsers array
     post.Like += 1;
