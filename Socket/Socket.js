@@ -28,7 +28,7 @@ const initializeSocket = (server) => {
         { new: true }
       );
     } catch (error) {
-      console.error("Error updating SocketId:", error.message);
+      // console.error("Error updating SocketId:", error.message);
     }
 
     // === CHECK NOTIFICATION
