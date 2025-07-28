@@ -10,7 +10,7 @@ cron.schedule("59 23 * * *", async () => {
       const topUser = await User.aggregate([
         // {
         //   $match: {
-        //     Challenges: { $exists: false, $not: { $size: 0 } },
+        //     Challenges: { $exists: false, $not: { $size: 0 } }, //
         //   },
         // },
         // {
