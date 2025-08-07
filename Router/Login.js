@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
+require("dotenv").config();
 // router splash
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
@@ -201,8 +202,8 @@ router.post("/sendResetPassOtp", async (req, res) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "codezacknet@gmail.com",
-      pass: "qkdf cvsn pbei jrkm ", // Use App Password here if using Gmail
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
   // Compose email

@@ -4,9 +4,12 @@ cron.schedule("59 23 * * *", async () => {
   const lastDay = now.endOf("month").date();
   const initializeFirebaseAdmin = require("../firebase/firebaseAdmin");
   const admin = initializeFirebaseAdmin();
+  const nodemailer = require("nodemailer");
+  require("dotenv").config();
 
   if (today === lastDay) {
     try {
+      const transporter = nodemailer.createTransport({});
       const topUser = await User.aggregate([
         // {
         //   $match: {
@@ -40,12 +43,22 @@ cron.schedule("59 23 * * *", async () => {
             firstName: 1,
             LastName: 1,
             FcmId: 1,
+            Email: 1,
           },
         },
       ]);
       if (topUser) {
         for (let i = 0; i < topUser?.length; i++) {
           if (i === 3) return;
+          // send reward link to winners
+          const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+            },
+          });
+          // Send notification to winnners
           await admin.messaging().send({
             token: topUser[i]?.FcmId,
             notification: {
