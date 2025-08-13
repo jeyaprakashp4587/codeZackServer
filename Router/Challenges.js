@@ -235,7 +235,6 @@ router.get("/getCompletedChallenge/:id/:challengeName", async (req, res) => {
     if (challenge) res.send(challenge);
   }
 });
-
 // this is for get video tutorials
 router.get("/getAllTutorials", async (req, res) => {
   try {

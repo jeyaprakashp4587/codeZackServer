@@ -6,14 +6,55 @@ const { DB1 } = require("../Database/CCDB");
 //get all courses from codezack Db
 router.get("/getAllCourses", async (req, res) => {
   try {
-    const collection = DB1.collection("Courses");
-    const courses = await collection.find().toArray();
-    if (courses.length === 0) {
-      return res.status(404).json({ message: "No courses found" });
-    }
-    return res.status(200).json({ Course: courses[0]?.courses });
+    const courses = await DB1.collection("Courses")
+      .aggregate([
+        {
+          $project: {
+            _id: 0,
+            courses: {
+              $map: {
+                input: "$courses",
+                as: "course",
+                in: {
+                  name: "$$course.name",
+                  img: "$$course.img",
+                  technologies: {
+                    $map: {
+                      input: "$$course.technologies",
+                      as: "tech",
+                      in: {
+                        name: "$$tech.name",
+                        icon: "$$tech.icon",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ])
+      .toArray();
+    // console.log(courses);
+
+    res.status(200).json(courses[0]);
   } catch (error) {
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.get("/getParticularCourse", async (req, res) => {
+  try {
+    const { courseName } = req.query;
+    if (!courseName) {
+      return res.status(400).json({ error: "Course name is required" });
+    }
+    const courses = await DB1.collection("Courses").find({}).toArray();
+    const course = courses[0]?.courses?.find((c) => c.name === courseName);
+    res.status(200).json(course);
+  } catch (error) {
+    console.error("Error fetching course:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 // Add Course
@@ -238,6 +279,63 @@ router.post("/setTopicLevel", async (req, res) => {
     res.status(200).json({ updatedTech });
   } catch (error) {
     console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.get("/getUserReq", async (req, res) => {
+  const { course, challenges, preparation } = req.query;
+  console.log(course, challenges, preparation);
+  try {
+    // get Course
+    const courseData = await DB1.collection("Courses")
+      .aggregate([
+        {
+          $unwind: "$courses",
+        },
+        {
+          $match: { "courses.name": course },
+        },
+        {
+          $project: {
+            _id: 0,
+            courseName: "$courses.name",
+            techImages: {
+              $map: {
+                input: "$courses.technologies",
+                as: "tech",
+                in: "$$tech.icon",
+              },
+            },
+          },
+        },
+      ])
+      .toArray();
+    //  get challenge
+    const Collection = DB1.collection("Challenges");
+    const challengeData = await Collection.aggregate([
+      { $unwind: "$Challenges.expertLevel" },
+      { $sample: { size: 5 } },
+      {
+        $project: {
+          _id: 0,
+          title: "$Challenges.expertLevel.title",
+          sample_image: "$Challenges.expertLevel.sample_image",
+        },
+      },
+    ]).toArray();
+    // get company
+    const companyCollection = DB1.collection("Company");
+    const companyData = await companyCollection
+      .aggregate([
+        { $sample: { size: 1 } },
+        { $project: { company_name: 1, companyLogo: 1 } },
+      ])
+      .toArray();
+    // console.log([courseData, challengeData, companyData]);
+
+    res.status(200).json([courseData, challengeData, companyData]);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
