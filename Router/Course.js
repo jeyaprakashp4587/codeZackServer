@@ -284,7 +284,6 @@ router.post("/setTopicLevel", async (req, res) => {
 });
 router.get("/getUserReq", async (req, res) => {
   const { course, challenges, preparation } = req.query;
-  console.log(course, challenges, preparation);
   try {
     // get Course
     const courseData = await DB1.collection("Courses")
@@ -324,16 +323,20 @@ router.get("/getUserReq", async (req, res) => {
       },
     ]).toArray();
     // get company
-    const companyCollection = DB1.collection("Company");
-    const companyData = await companyCollection
-      .aggregate([
-        { $sample: { size: 1 } },
-        { $project: { company_name: 1, companyLogo: 1 } },
-      ])
-      .toArray();
-    // console.log([courseData, challengeData, companyData]);
-
-    res.status(200).json([courseData, challengeData, companyData]);
+    if (preparation) {
+      const companyCollection = DB1.collection("Company");
+      const companyData = await companyCollection
+        .aggregate([
+          { $sample: { size: 1 } },
+          { $project: { company_name: 1, companyLogo: 1 } },
+        ])
+        .toArray();
+    }
+    if (preparation) {
+      res.status(200).json([courseData, challengeData, preparation]);
+      return;
+    }
+    res.status(200).json([courseData, challengeData]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
