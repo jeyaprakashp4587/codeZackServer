@@ -311,7 +311,9 @@ router.get("/getUserReq", async (req, res) => {
       .toArray();
     //  get challenge
     const Collection = DB1.collection("Challenges");
+
     const challengeData = await Collection.aggregate([
+      { $match: { ChallengeTopic: challenges } },
       { $unwind: "$Challenges.expertLevel" },
       { $sample: { size: 5 } },
       {
@@ -323,17 +325,21 @@ router.get("/getUserReq", async (req, res) => {
       },
     ]).toArray();
     // get company
+    let companyData;
     if (preparation) {
       const companyCollection = DB1.collection("Company");
-      const companyData = await companyCollection
+      const company = await companyCollection
         .aggregate([
           { $sample: { size: 1 } },
           { $project: { company_name: 1, companyLogo: 1 } },
         ])
         .toArray();
+      companyData = company;
     }
     if (preparation) {
-      res.status(200).json([courseData, challengeData, preparation]);
+      console.log(courseData, challengeData, companyData);
+
+      res.status(200).json([courseData, challengeData, companyData]);
       return;
     }
     res.status(200).json([courseData, challengeData]);
