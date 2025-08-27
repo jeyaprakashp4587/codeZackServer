@@ -15,4 +15,4 @@ const jobSchema = new Schema({
   },
 });
 
-module.exports = DB1.model("Jobs", jobSchema);
+module.exports = DB1.model("Jobs", jobSchema, "Jobs"); 

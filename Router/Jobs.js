@@ -10,7 +10,7 @@ router.get("/getAllJobs", async (req, res) => {
     const jobs = await Collection.find().toArray(); // Await the result
     if (jobs.length > 0) {
       console.log(jobs);
-      return res.status(200).json({ jobs });
+      return res.status(200).json(jobs);
     } else {
       //   console.log("No jobs found.");
       return res.status(404).json({ message: "No jobs found." });
@@ -24,6 +24,7 @@ router.get("/getAllJobs", async (req, res) => {
 });
 router.post("/postJobs", async (req, res) => {
   const { jobCompany, jobLink, jobImage, jobLocation, Jobtitle } = req.body;
+
   try {
     const newJob = await Jobs({
       jobCompany,
