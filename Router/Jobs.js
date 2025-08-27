@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
+const Jobs = require("../Models/Jobs");
 const { DB1 } = require("../Database/CCDB");
 // get all jobs
 router.get("/getAllJobs", async (req, res) => {
@@ -21,5 +22,17 @@ router.get("/getAllJobs", async (req, res) => {
       .json({ message: "An error occurred while fetching jobs." });
   }
 });
-
+router.post("/postJobs", async (req, res) => {
+  const { jobCompany, jobLink, jobImage, jobLocation, Jobtitle } = req.body;
+  try {
+    const newJob = await Jobs({
+      jobCompany,
+      jobLink,
+      jobImage,
+      jobLocation,
+      Jobtitle,
+    });
+    await newJob.save();
+  } catch (error) {}
+});
 module.exports = router;
