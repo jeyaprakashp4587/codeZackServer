@@ -8,6 +8,7 @@ const jobSchema = new Schema({
   jobImage: String,
   jobLocation: String,
   Jobtitle: String,
+  jobPosted: String,
   createdAt: {
     type: Date,
     default: Date.now,
@@ -15,4 +16,4 @@ const jobSchema = new Schema({
   },
 });
 
-module.exports = DB1.model("Jobs", jobSchema, "Jobs"); 
+module.exports = DB1.model("Jobs", jobSchema, "Jobs");

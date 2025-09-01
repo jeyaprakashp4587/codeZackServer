@@ -23,7 +23,8 @@ router.get("/getAllJobs", async (req, res) => {
   }
 });
 router.post("/postJobs", async (req, res) => {
-  const { jobCompany, jobLink, jobImage, jobLocation, Jobtitle } = req.body;
+  const { jobCompany, jobLink, jobImage, jobLocation, Jobtitle, jobPosted } =
+    req.body;
 
   try {
     const newJob = await Jobs({
@@ -32,6 +33,7 @@ router.post("/postJobs", async (req, res) => {
       jobImage,
       jobLocation,
       Jobtitle,
+      jobPosted,
     });
     await newJob.save();
   } catch (error) {}
