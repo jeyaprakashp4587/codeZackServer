@@ -11,7 +11,7 @@ const initializeSocket = (server) => {
     },
   });
 
-  const admin = initializeFirebaseAdmin();
+  // const admin = initializeFirebaseAdmin();
 
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
