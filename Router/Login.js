@@ -85,6 +85,7 @@ router.post("/signIn", async (req, res) => {
 // verify email
 router.post("/verifyEmail", async (req, res) => {
   const { Email } = req.body;
+  console.log(Email);
 
   try {
     const exists = await User.exists({ Email: Email.toLowerCase() });
