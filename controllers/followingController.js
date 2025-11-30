@@ -1,4 +1,4 @@
-const User = require("../Models/User");
+import User from "../Models/User.js";
 
 // Find existing connection
 const findExistsConnection = async (req, res) => {
@@ -136,7 +136,7 @@ const getNetworks = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   findExistsConnection,
   addConnection,
   removeConnection,

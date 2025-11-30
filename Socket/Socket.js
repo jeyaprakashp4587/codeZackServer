@@ -1,10 +1,9 @@
-const Socket = require("socket.io");
-const User = require("../Models/User");
-const initializeFirebaseAdmin = require("../firebase/firebaseAdmin");
-const moment = require("moment");
+import { Server } from "socket.io";
+import User from "../Models/User.js";
+import moment from "moment";
 
 const initializeSocket = (server) => {
-  const io = Socket(server, {
+  const io = new Server(server, {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
@@ -307,4 +306,4 @@ const initializeSocket = (server) => {
   });
 };
 
-module.exports = initializeSocket;
+export default initializeSocket;

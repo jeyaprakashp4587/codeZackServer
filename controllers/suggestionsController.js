@@ -1,4 +1,4 @@
-const User = require("../Models/User");
+import User from "../Models/User.js";
 
 // Get user suggestions
 const getUsers = async (req, res) => {
@@ -104,7 +104,7 @@ const getAllSuggestions = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   getUsers,
   getAllSuggestions,
 };

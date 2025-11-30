@@ -1,9 +1,11 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const suggestionsController = require("../controllers/suggestionsController");
+import * as suggestionsController from "../controllers/suggestionsController.js";
+import { verifyToken } from "../middleware/JWT.js";
 
-// Routes
+// Routes (lowercase paths)
+router.use(verifyToken);
 router.get("/users/:id", suggestionsController.getUsers);
-router.get("/getAllSuggestions/:id", suggestionsController.getAllSuggestions);
+router.get("/getallsuggestions/:id", suggestionsController.getAllSuggestions);
 
-module.exports = router;
+export default router;

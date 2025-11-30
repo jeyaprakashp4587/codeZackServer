@@ -1,5 +1,5 @@
-const User = require("../Models/User");
-const { mongoose } = require("mongoose");
+import User from "../Models/User.js";
+import { mongoose } from "mongoose";
 
 // Upload post
 const uploadPost = async (req, res) => {
@@ -584,7 +584,7 @@ const getPostDetails = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   uploadPost,
   deletePost,
   getConnectionPosts,

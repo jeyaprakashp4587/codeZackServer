@@ -1,5 +1,5 @@
-const admin = require("firebase-admin");
-require("dotenv").config();
+import admin from "firebase-admin";
+import "dotenv/config";
 // Custom function to initialize Firebase Admin SDK fgr
 const initializeFirebaseAdmin = () => {
   if (!admin.apps.length) {
@@ -18,4 +18,4 @@ const initializeFirebaseAdmin = () => {
   return admin;
 };
 
-module.exports = initializeFirebaseAdmin;
+export default initializeFirebaseAdmin;

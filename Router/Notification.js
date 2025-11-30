@@ -1,10 +1,21 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const notificationController = require("../controllers/notificationController");
+import * as notificationController from "../controllers/notificationController.js";
+import { verifyToken } from "../middleware/JWT.js";
 
-// Routes
-router.get("/getNotifications/:userId", notificationController.getNotifications);
-router.get("/getNotificationsLength/:id", notificationController.getNotificationsLength);
-router.patch("/markAsSeen/:userId/:notificationId", notificationController.markAsSeen);
+// Routes (lowercase paths)
+router.use(verifyToken);
+router.get(
+  "/getnotifications/:userId",
+  notificationController.getNotifications
+);
+router.get(
+  "/getnotificationslength/:id",
+  notificationController.getNotificationsLength
+);
+router.patch(
+  "/markasseen/:userId/:notificationId",
+  notificationController.markAsSeen
+);
 
-module.exports = router;
+export default router;

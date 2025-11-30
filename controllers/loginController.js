@@ -1,40 +1,9 @@
-const User = require("../Models/User");
-const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
-require("dotenv").config();
-
-// Splash screen - get user data
-const splash = async (req, res) => {
-  const { Email } = req.body;
-  if (!Email) {
-    return res.status(400).json({ error: "Email is required" });
-  }
-  try {
-    const user = await User.findOne(
-      { Email },
-      {
-        Notifications: 0,
-        ConnectionsPost: 0,
-        Assignments: 0,
-        Posts: 0,
-        Activities: 0,
-      }
-    ).lean();
-    if (user) {
-      if (user.Challenges.length > 0) {
-        user.Challenges =
-          user.Challenges?.filter(
-            (challenge) => challenge.status === "completed"
-          ) || [];
-      }
-      return res.status(200).json({ user });
-    } else {
-      return res.status(404).json({ error: "User not found" });
-    }
-  } catch (error) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
+import User from "../Models/User.js";
+import nodemailer from "nodemailer";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { createAccessToken, createRefreshToken } from "../middleware/JWT.js";
+import "dotenv/config";
 
 // SignIn
 const signIn = async (req, res) => {
@@ -70,7 +39,16 @@ const signIn = async (req, res) => {
       findEmailUser.Challenges?.filter(
         (challenge) => challenge.status === "completed"
       ) || [];
-    res.json({ message: "SignIn Successful", user: findEmailUser });
+
+    // Generate tokens
+    const accessToken = await createAccessToken(findEmailUser._id);
+    const refreshToken = await createRefreshToken(findEmailUser._id);
+
+    res.json({
+      message: "SignIn Successful",
+      user: findEmailUser,
+      tokens: { accessToken, refreshToken },
+    });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -156,7 +134,16 @@ const signUp = async (req, res) => {
       },
     });
     await user.save();
-    res.status(200).json({ message: "SignUp Sucessfully", user: user });
+
+    // Generate tokens
+    const accessToken = await createAccessToken(user._id);
+    const refreshToken = await createRefreshToken(user._id);
+
+    res.status(200).json({
+      message: "SignUp Sucessfully",
+      user: user,
+      tokens: { accessToken, refreshToken },
+    });
   } catch (error) {}
 };
 
@@ -172,19 +159,22 @@ const signOut = async (req, res) => {
 
 // Get user details
 const getUser = async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findById(userId, {
-    Notifications: 0,
-    Activities: 0,
-    Posts: 0,
-  });
-  if (user) {
-    user.Challenges =
-      user.Challenges?.filter(
-        (challenge) => challenge.status === "completed"
-      ) || [];
-    res.status(200).send(user);
-  }
+  const { userId } = req.params;
+  console.log(userId);
+  try {
+    const user = await User.findById(userId, {
+      Notifications: 0,
+      Posts: 0,
+    });
+    if (user) {
+      user.Challenges =
+        user.Challenges?.filter(
+          (challenge) => challenge.status === "completed"
+        ) || [];
+      // console.log(user);
+      res.status(200).json({ user });
+    }
+  } catch (error) {}
 };
 
 // Send reset password OTP
@@ -258,8 +248,32 @@ const resetNewPassword = async (req, res) => {
   } catch (error) {}
 };
 
-module.exports = {
-  splash,
+// Refresh token endpoint
+const refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ msg: "Refresh token is required" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_TOKEN_SECRET
+    );
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Generate new access token
+    const newAccessToken = await createAccessToken(user._id);
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    return res.status(403).json({ msg: "Invalid or expired refresh token" });
+  }
+};
+
+export {
   signIn,
   verifyEmail,
   signUp,
@@ -267,5 +281,5 @@ module.exports = {
   getUser,
   sendResetPassOtp,
   resetNewPassword,
+  refreshToken,
 };
-

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { DB1 } = require("../Database/CCDB");
+import mongoose from "mongoose";
+import { DB1 } from "../Database/CCDB.js";
 
 const Chat = new mongoose.Schema({
   senderId: String,
@@ -7,4 +7,4 @@ const Chat = new mongoose.Schema({
   message: String,
   Time: String,
 });
-module.exports = DB1.model("chats", Chat);
+export default DB1.model("chats", Chat);

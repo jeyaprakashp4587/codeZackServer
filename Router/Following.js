@@ -1,12 +1,14 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const followingController = require("../controllers/followingController");
+import * as followingController from "../controllers/followingController.js";
+import { verifyToken } from "../middleware/JWT.js";
 
-// Routes
-router.post("/findExistsConnection", followingController.findExistsConnection);
-router.post("/addConnection", followingController.addConnection);
-router.post("/removeConnection/:id", followingController.removeConnection);
-router.post("/getMutuals", followingController.getMutuals);
-router.get("/getNetworks/:id", followingController.getNetworks);
+// Routes (lowercase paths)
+router.use(verifyToken);
+router.post("/findexistsconnection", followingController.findExistsConnection);
+router.post("/addconnection", followingController.addConnection);
+router.post("/removeconnection/:id", followingController.removeConnection);
+router.post("/getmutuals", followingController.getMutuals);
+router.get("/getnetworks/:id", followingController.getNetworks);
 
-module.exports = router;
+export default router;

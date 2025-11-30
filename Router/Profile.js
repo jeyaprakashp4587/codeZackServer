@@ -1,12 +1,14 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const profileController = require("../controllers/profileController");
+import * as profileController from "../controllers/profileController.js";
+import { verifyToken } from "../middleware/JWT.js";
 
-// Routes
-router.post("/updateProfileImages", profileController.updateProfileImages);
-router.post("/updateProfileData/:id", profileController.updateProfileData);
-router.post("/saveFcmToken", profileController.saveFcmToken);
-router.post("/setOnlineStatus/:id", profileController.setOnlineStatus);
-router.get("/Getlatest-version", profileController.getLatestVersion);
+// Routes (lowercase paths)
+router.use(verifyToken);
+router.post("/updateprofileimages", profileController.updateProfileImages);
+router.post("/updateprofiledata/:id", profileController.updateProfileData);
+router.post("/savefcmtoken", profileController.saveFcmToken);
+router.post("/setonlinestatus/:id", profileController.setOnlineStatus);
+router.get("/getlatest-version", profileController.getLatestVersion);
 
-module.exports = router;
+export default router;

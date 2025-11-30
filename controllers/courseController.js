@@ -1,5 +1,5 @@
-const User = require("../Models/User");
-const { DB1 } = require("../Database/CCDB");
+import User from "../Models/User.js";
+import { DB1 } from "../Database/CCDB.js";
 
 // Get all courses
 const getAllCourses = async (req, res) => {
@@ -339,7 +339,7 @@ const getUserReq = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   getAllCourses,
   getParticularCourse,
   addCourse,

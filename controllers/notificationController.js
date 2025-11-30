@@ -1,4 +1,4 @@
-const User = require("../Models/User");
+import User from "../Models/User.js";
 
 // Get notifications
 const getNotifications = async (req, res) => {
@@ -104,7 +104,7 @@ const markAsSeen = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   getNotifications,
   getNotificationsLength,
   markAsSeen,

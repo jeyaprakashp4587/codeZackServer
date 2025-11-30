@@ -1,17 +1,19 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const courseController = require("../controllers/courseController");
+import * as courseController from "../controllers/courseController.js";
+import { verifyToken } from "../middleware/JWT.js";
 
-// Routes
-router.get("/getAllCourses", courseController.getAllCourses);
-router.get("/getParticularCourse", courseController.getParticularCourse);
-router.post("/addCourse", courseController.addCourse);
-router.get("/getCourses/:id", courseController.getCourses);
-router.post("/addTech", courseController.addTech);
-router.post("/removeCourse", courseController.removeCourse);
-router.get("/getTechCourse", courseController.getTechCourse);
-router.post("/setTopicLength", courseController.setTopicLength);
-router.post("/setTopicLevel", courseController.setTopicLevel);
-router.get("/getUserReq", courseController.getUserReq);
+// Routes (lowercase paths)
+router.use(verifyToken);
+router.get("/getallcourses", courseController.getAllCourses);
+router.get("/getparticularcourse", courseController.getParticularCourse);
+router.post("/addcourse", courseController.addCourse);
+router.get("/getcourses/:id", courseController.getCourses);
+router.post("/addtech", courseController.addTech);
+router.post("/removecourse", courseController.removeCourse);
+router.get("/gettechcourse", courseController.getTechCourse);
+router.post("/settopiclength", courseController.setTopicLength);
+router.post("/settopiclevel", courseController.setTopicLevel);
+router.get("/getuserreq", courseController.getUserReq);
 
-module.exports = router;
+export default router;

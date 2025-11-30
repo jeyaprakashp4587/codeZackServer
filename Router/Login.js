@@ -1,15 +1,15 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const loginController = require("../controllers/loginController");
+import * as loginController from "../controllers/loginController.js";
 
-// Routes
-router.post("/splash", loginController.splash);
-router.post("/signIn", loginController.signIn);
-router.post("/verifyEmail", loginController.verifyEmail);
-router.post("/signUp", loginController.signUp);
-router.post("/signOut/:id", loginController.signOut);
-router.post("/getUser", loginController.getUser);
-router.post("/sendResetPassOtp", loginController.sendResetPassOtp);
-router.post("/resetNewPassword", loginController.resetNewPassword);
+// Routes (all paths are lowercase)
+router.post("/login", loginController.signIn);
+router.post("/verify-email", loginController.verifyEmail);
+router.post("/register", loginController.signUp);
+router.post("/logout/:id", loginController.signOut);
+router.get("/user/:userId", loginController.getUser);
+router.post("/send-reset-pass-otp", loginController.sendResetPassOtp);
+router.post("/reset-password", loginController.resetNewPassword);
+router.post("/refresh", loginController.refreshToken);
 
-module.exports = router;
+export default router;

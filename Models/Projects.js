@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { DB1 } = require("../Database/CCDB");
+import mongoose from "mongoose";
+import { DB1 } from "../Database/CCDB.js";
 const Schema = mongoose.Schema;
 
 const freelanceProjectSchema = new Schema({
@@ -20,4 +20,4 @@ const freelanceProjectSchema = new Schema({
   },
 });
 
-module.exports = DB1.model("projects", freelanceProjectSchema);
+export default DB1.model("projects", freelanceProjectSchema);

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { DB1 } = require("../Database/CCDB");
+import mongoose from "mongoose";
+import { DB1 } from "../Database/CCDB.js";
 const Schema = mongoose.Schema;
 
 const jobSchema = new Schema({
@@ -16,4 +16,4 @@ const jobSchema = new Schema({
   },
 });
 
-module.exports = DB1.model("Jobs", jobSchema, "Jobs");
+export default DB1.model("Jobs", jobSchema, "Jobs");

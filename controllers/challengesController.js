@@ -1,5 +1,5 @@
-const User = require("../Models/User");
-const { DB1 } = require("../Database/CCDB");
+import User from "../Models/User.js";
+import { DB1 } from "../Database/CCDB.js";
 
 // Add challenge
 const addChallenge = async (req, res) => {
@@ -265,7 +265,7 @@ const getAllProjects = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addChallenge,
   uploadChallenge,
   getChallenges,

@@ -1,15 +1,23 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const challengesController = require("../controllers/challengesController");
+import * as challengesController from "../controllers/challengesController.js";
+import { verifyToken } from "../middleware/JWT.js";
 
-// Routes
-router.post("/addChallenge", challengesController.addChallenge);
-router.post("/uploadChallenge/:id", challengesController.uploadChallenge);
-router.post("/getChallenges", challengesController.getChallenges);
-router.post("/getUserChallenge/:id", challengesController.getUserChallenge);
-router.post("/getChallengeAndStatus/:id", challengesController.getChallengeAndStatus);
-router.get("/getCompletedChallenge/:id/:challengeName", challengesController.getCompletedChallenge);
-router.get("/getAllTutorials", challengesController.getAllTutorials);
-router.get("/getAllProjects", challengesController.getAllProjects);
+// Routes (lowercase paths)
+router.use(verifyToken);
+router.post("/addchallenge", challengesController.addChallenge);
+router.post("/uploadchallenge/:id", challengesController.uploadChallenge);
+router.post("/getchallenges", challengesController.getChallenges);
+router.post("/getuserchallenge/:id", challengesController.getUserChallenge);
+router.post(
+  "/getchallengeandstatus/:id",
+  challengesController.getChallengeAndStatus
+);
+router.get(
+  "/getcompletedchallenge/:id/:challengeName",
+  challengesController.getCompletedChallenge
+);
+router.get("/getalltutorials", challengesController.getAllTutorials);
+router.get("/getallprojects", challengesController.getAllProjects);
 
-module.exports = router;
+export default router;

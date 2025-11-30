@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
-const { DB2 } = require("../Database/DB");
+import { DB2 } from "../Database/DB.js";
 
 const UserSchema = new Schema({
   firstName: String,
@@ -65,7 +65,6 @@ const UserSchema = new Schema({
       ],
     },
   ],
-  Reawards: [],
   Challenges: [
     {
       ChallengeName: String,
@@ -78,7 +77,6 @@ const UserSchema = new Schema({
       ChallengeType: String,
     },
   ],
-  Activities: [{ date: String, activities: [{ activityName: String }] }],
   ConnectionsPost: [
     {
       postId: String,
@@ -97,28 +95,11 @@ const UserSchema = new Schema({
       postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
     },
   ],
-  Assignments: [
-    {
-      AssignmentType: String,
-      AssignmentLevel: [{ LevelType: String, point: Number }],
-    },
-  ],
-  InterView: [
-    {
-      companyName: String,
-      currentWeek: { default: 1, type: Number },
-      currentQuestionLength: { default: 0, type: Number },
-    },
-  ],
   FcmId: String,
   ChallengesPoint: {
     type: Number,
     default: 0,
   },
-  IsLeaderBoardWinner: {
-    type: Boolean,
-    default: false,
-  },
 });
 
-module.exports = DB2.model("user", UserSchema);
+export default DB2.model("user", UserSchema);

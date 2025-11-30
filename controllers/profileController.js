@@ -1,5 +1,5 @@
-const User = require("../Models/User");
-const { DB1 } = require("../Database/CCDB");
+import User from "../Models/User.js";
+import { DB1 } from "../Database/CCDB.js";
 
 // Update profile images
 const updateProfileImages = async (req, res) => {
@@ -150,7 +150,7 @@ const getLatestVersion = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   updateProfileImages,
   updateProfileData,
   saveFcmToken,
