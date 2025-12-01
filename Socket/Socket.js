@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import User from "../Models/User.js";
 import moment from "moment";
+import initializeFirebaseAdmin from "../firebase/firebaseAdmin.js";
 
 const initializeSocket = (server) => {
   const io = new Server(server, {
@@ -10,7 +11,7 @@ const initializeSocket = (server) => {
     },
   });
 
-  // const admin = initializeFirebaseAdmin();
+  const admin = initializeFirebaseAdmin();
 
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
