@@ -19,30 +19,4 @@ const initializeFirebaseAdmin = () => {
 };
 
 export default initializeFirebaseAdmin;
-"project_info": {
-    "project_number": "90097907920",
-    "project_id": "loanbuddy-aa9c3",
-    "storage_bucket": "loanbuddy-aa9c3.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:90097907920:android:4271b2f37a2a4e828d46d5",
-        "android_client_info": {
-          "package_name": "com.codezack"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyC-SBpUh6GBE2ElLq-CSqKtPelBuK7VJWk"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    }
-  ],
-  "configuration_version": "1"
+
