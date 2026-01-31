@@ -96,10 +96,6 @@ const UserSchema = new Schema({
     },
   ],
   FcmId: String,
-  ChallengesPoint: {
-    type: Number,
-    default: 0,
-  },
 });
 
 export default DB2.model("user", UserSchema);

@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import dotEnv from "dotenv";
-// import User from "../models/User.js";
 dotEnv.config();
 
 export const createAccessToken = async (id) => {
@@ -9,7 +8,7 @@ export const createAccessToken = async (id) => {
     process.env.JWT_ACCESS_TOKEN_SECRET,
     {
       expiresIn: "1h",
-    }
+    },
   );
   return accesstoken;
 };
@@ -18,7 +17,7 @@ export const createRefreshToken = async (id) => {
   const refreshToken = jwt.sign(
     { userId: id },
     process.env.JWT_REFRESH_TOKEN_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
   return refreshToken;
 };
@@ -32,11 +31,9 @@ export const verifyToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET);
-    console.log("sucess");
-
-    // // const user = await User.findById(decoded.userId).select("name language");
-    // // if (!user) return res.status(404).json({ msg: "User not found" });
-    // req.userId = decoded.userId;
+    // const user = await User.findById(decoded.userId).select("name language");
+    // if (!user) return res.status(404).json({ msg: "User not found" });
+    req.userId = decoded.userId;
     // req.user = user;
     next();
   } catch (err) {
