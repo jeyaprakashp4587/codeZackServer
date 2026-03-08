@@ -2,7 +2,6 @@ import express from "express";
 const router = express.Router();
 import * as loginController from "../controllers/loginController.js";
 
-// Routes (all paths are lowercase)
 router.post("/login", loginController.signIn);
 router.post("/verify-email", loginController.verifyEmail);
 router.post("/register", loginController.signUp);

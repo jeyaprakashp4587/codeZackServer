@@ -3,7 +3,6 @@ const router = express.Router();
 import * as followingController from "../controllers/followingController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-// Routes (lowercase paths)
 router.use(verifyToken);
 router.post("/findexistsconnection", followingController.findExistsConnection);
 router.post("/addconnection", followingController.addConnection);

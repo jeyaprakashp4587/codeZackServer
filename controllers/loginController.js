@@ -23,21 +23,21 @@ const signIn = async (req, res) => {
         Activities: 0,
         ConnectionsPost: 0,
         Posts: 0,
-      }
+      },
     );
     if (!findEmailUser) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
     const isPasswordCorrect = await bcrypt.compare(
       Password,
-      findEmailUser.Password
+      findEmailUser.Password,
     );
     if (!isPasswordCorrect) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
     findEmailUser.Challenges =
       findEmailUser.Challenges?.filter(
-        (challenge) => challenge.status === "completed"
+        (challenge) => challenge.status === "completed",
       ) || [];
 
     // Generate tokens
@@ -103,6 +103,8 @@ const signUp = async (req, res) => {
     image: image,
   } = req.body;
   try {
+    console.log(First_Name, Last_Name, Email, Gender);
+
     const lowerCaseEmail = Email.toLowerCase().trim();
     const lowerGender = Gender.toLowerCase().trim();
     const hashedPassword = await bcrypt.hash(Password, 10);
@@ -160,7 +162,8 @@ const signOut = async (req, res) => {
 // Get user details
 const getUser = async (req, res) => {
   const { userId } = req.params;
-  console.log(userId);
+  console.log("user", userId);
+
   try {
     const user = await User.findById(userId, {
       Notifications: 0,
@@ -169,7 +172,7 @@ const getUser = async (req, res) => {
     if (user) {
       user.Challenges =
         user.Challenges?.filter(
-          (challenge) => challenge.status === "completed"
+          (challenge) => challenge.status === "completed",
         ) || [];
       // console.log(user);
       res.status(200).json({ user });
@@ -258,7 +261,7 @@ const refreshToken = async (req, res) => {
   try {
     const decoded = jwt.verify(
       refreshToken,
-      process.env.JWT_REFRESH_TOKEN_SECRET
+      process.env.JWT_REFRESH_TOKEN_SECRET,
     );
     const user = await User.findById(decoded.userId);
     if (!user) {
