@@ -23,6 +23,7 @@
   "scripts": {
     "start": "node Server.js",
     "dev": "nodemon Server.js",
-    "build": "npm i"
+    "build": "npm i",
+    "seed:users": "node Seeders/usersSeeders.js"
   }
 }
