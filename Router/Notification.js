@@ -3,7 +3,7 @@ const router = express.Router();
 import * as notificationController from "../controllers/notificationController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.get(
   "/getnotifications/:userId",
   notificationController.getNotifications,

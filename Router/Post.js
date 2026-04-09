@@ -3,7 +3,7 @@ const router = express.Router();
 import * as postController from "../controllers/postController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.post("/uploadpost", postController.uploadPost);
 router.post("/deletepost/:id", postController.deletePost);
 router.get("/getconnectionposts/:userId", postController.getConnectionPosts);

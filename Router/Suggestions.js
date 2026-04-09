@@ -3,7 +3,7 @@ const router = express.Router();
 import * as suggestionsController from "../controllers/suggestionsController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.get("/users/:id", suggestionsController.getUsers);
 router.get("/getallsuggestions/:id", suggestionsController.getAllSuggestions);
 

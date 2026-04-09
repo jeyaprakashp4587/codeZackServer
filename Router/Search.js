@@ -3,7 +3,7 @@ const router = express.Router();
 import * as searchController from "../controllers/searchController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.post("/getUserName/:id", searchController.getUserName);
 
 export default router;

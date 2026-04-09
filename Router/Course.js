@@ -3,7 +3,7 @@ const router = express.Router();
 import * as courseController from "../controllers/courseController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.get("/getallcourses", courseController.getAllCourses);
 router.get("/getparticularcourse", courseController.getParticularCourse);
 router.post("/addcourse", courseController.addCourse);

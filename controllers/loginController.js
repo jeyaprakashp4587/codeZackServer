@@ -1,7 +1,7 @@
-import User from "../Models/User.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import User from "../Models/User.js";
 import { createAccessToken, createRefreshToken } from "../middleware/JWT.js";
 import "dotenv/config";
 

@@ -3,7 +3,7 @@ const router = express.Router();
 import * as profileController from "../controllers/profileController.js";
 import { verifyToken } from "../middleware/JWT.js";
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.post("/updateprofileimages", profileController.updateProfileImages);
 router.post("/updateprofiledata/:id", profileController.updateProfileData);
 router.post("/savefcmtoken", profileController.saveFcmToken);
