@@ -1,4 +1,4 @@
-import "dotenv/config"; // Load environment variables first
+import "dotenv/config"; // Load environment variables first jnj
 import express from "express";
 import http from "http";
 import cors from "cors";
